@@ -39,6 +39,11 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
+        <provider
+            android:authorities="org.hisp.dhis.client.sdk.core"
+            android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider" >
+        </provider>
+
     </application>
 
 </manifest>
