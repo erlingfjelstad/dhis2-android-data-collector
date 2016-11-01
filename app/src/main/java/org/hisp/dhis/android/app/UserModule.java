@@ -29,7 +29,6 @@
 package org.hisp.dhis.android.app;
 
 import android.app.Application;
-import android.content.Context;
 
 import org.hisp.dhis.android.app.selector.SelectorPresenter;
 import org.hisp.dhis.android.app.selector.SelectorPresenterImpl;
@@ -158,9 +157,9 @@ public final class UserModule {
 
     @Provides
     @PerUser
-    public SelectorPresenter selectorPresenter(Context context) {
+    public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, Logger logger) {
         return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues()
-                , null, syncWrapper(), null, null);
+                , null, syncWrapper(), apiExceptionHandler, logger);
     }
 
     @Provides
