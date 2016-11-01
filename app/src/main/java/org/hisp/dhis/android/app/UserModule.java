@@ -31,7 +31,12 @@ package org.hisp.dhis.android.app;
 import android.app.Application;
 import android.content.Context;
 
+import org.hisp.dhis.android.app.selector.SelectorPresenter;
+import org.hisp.dhis.android.app.selector.SelectorPresenterImpl;
+import org.hisp.dhis.android.app.sync.SyncWrapper;
 import org.hisp.dhis.client.sdk.core.D2;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractorImpl;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
@@ -104,6 +109,12 @@ public final class UserModule {
 
     @Provides
     @PerUser
+    public AppPreferences appPreferences() {
+        return new AppPreferencesImpl(sdkInstance.application().getApplicationContext());
+    }
+
+    @Provides
+    @PerUser
     public SyncDateWrapper syncDateWrapper(@Nullable AppPreferences appPreferences) {
         return new SyncDateWrapper(appPreferences);
     }
@@ -124,5 +135,25 @@ public final class UserModule {
     @PerUser
     public SettingsPresenter settingsPresenter() {
         return new SettingsPresenterImpl(null, null);
+    }
+
+    @Provides
+    @PerUser
+    public SyncWrapper syncWrapper() {
+        return new SyncWrapper(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), syncDateWrapper(appPreferences()));
+    }
+
+
+    @Provides
+    @PerUser
+    public SelectorPresenter selectorPresenter(Context context) {
+        return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues()
+                , null, syncWrapper(), null, null);
+    }
+
+    @Provides
+    @PerUser
+    public TrackedEntityDataValueInteractor trackedEntityDataValueInteractor() {
+        return new TrackedEntityDataValueInteractorImpl(null);
     }
 }

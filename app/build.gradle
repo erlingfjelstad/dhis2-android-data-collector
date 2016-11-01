@@ -111,4 +111,6 @@ dependencies {
 
     // Multidex:
     compile "com.android.support:multidex:${libs.multidex}"
+    compile project(path: ':ui')
+    compile project(path: ':core')
 }

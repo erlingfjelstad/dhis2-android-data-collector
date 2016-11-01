@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
 import org.hisp.dhis.android.app.R;
+import org.hisp.dhis.android.app.selector.SelectorFragment;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultHomeActivity;
 import org.hisp.dhis.client.sdk.ui.fragments.WrapperFragment;
 
@@ -31,7 +32,7 @@ public class HomeActivity extends DefaultHomeActivity {
         switch (item.getItemId()) {
             case DRAWER_ITEM_PLACEHOLDER_ID: {
                 attachFragment(WrapperFragment.newInstance(
-                        PlaceholderFragment.class, getString(R.string.drawer_item_placeholder)));
+                        SelectorFragment.class, getString(R.string.drawer_item_placeholder)));
                 break;
             }
         }

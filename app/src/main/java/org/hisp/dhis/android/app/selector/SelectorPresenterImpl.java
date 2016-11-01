@@ -28,13 +28,13 @@
 
 package org.hisp.dhis.android.app.selector;
 
-import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
-import org.hisp.dhis.android.eventcapture.views.SelectorView;
+import org.hisp.dhis.android.app.sync.SyncWrapper;
 import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
@@ -83,11 +83,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private final OrganisationUnitInteractor organisationUnitInteractor;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
+    private final TrackedEntityDataValueInteractor trackedEntityDataValueInteractor;
     private final SessionPreferences sessionPreferences;
     private final ApiExceptionHandler apiExceptionHandler;
     private final SyncWrapper syncWrapper;
     private final Logger logger;
     private final SimpleDateFormat simpleDateFormat;
+    ;
     private CompositeSubscription subscription;
     private boolean hasSyncedBefore;
     private SelectorView selectorView;
@@ -97,6 +99,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     public SelectorPresenterImpl(OrganisationUnitInteractor interactor,
                                  ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
+                                 TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
                                  SessionPreferences sessionPreferences,
                                  SyncWrapper syncWrapper,
                                  ApiExceptionHandler apiExceptionHandler,
@@ -104,6 +107,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         this.organisationUnitInteractor = interactor;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
+        this.trackedEntityDataValueInteractor = trackedEntityDataValueInteractor;
         this.sessionPreferences = sessionPreferences;
         this.syncWrapper = syncWrapper;
         this.apiExceptionHandler = apiExceptionHandler;
@@ -157,7 +161,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     @Override
     public void onPickersSelectionsChanged(List<Picker> pickerList) {
         if (pickerList != null) {
-            sessionPreferences.clearSelectedPickers();
+//            sessionPreferences.clearSelectedPickers();
             for (int index = 0; index < pickerList.size(); index++) {
                 Picker current = pickerList.get(index);
                 Picker child = current.getSelectedChild();
@@ -165,7 +169,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     return;
                 }
                 String pickerId = child.getId();
-                sessionPreferences.setSelectedPickerUid(index, pickerId);
+                //sessionPreferences.setSelectedPickerUid(index, pickerId);
             }
         }
     }
@@ -199,7 +203,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         handleError(throwable);
                     }
                 }));
-        subscription.add(syncWrapper.syncData()
+        /*subscription.add(syncWrapper.syncData()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Event>>() {
@@ -214,12 +218,12 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, "Failed to sync events", throwable);
                     }
-                }));
+                }));*/
     }
 
     @Override
     public void listPickers() {
-        logger.d(TAG, "listPickers()");
+        //logger.d(TAG, "listPickers()");
         subscription.add(Observable.zip(
                 getOrganisationUnits(),
                 getPrograms(),
@@ -257,15 +261,15 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                     "Program id doesn't exist");
                         }
                         ProgramStage programStage = null;
-                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
-                            programStage = program.getProgramStages().get(0);
+                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
+                            programStage = program.programStages().get(0);
                         }
 
                         if (programStage == null) {
                             throw new IllegalArgumentException("No stages found for program");
                         }
 
-                        return Observable.zip(Observable.just(programStage.getProgramStageDataElements()), listEventsByOrgUnitProgram(organisationUnitId, programId),
+                        return Observable.zip(Observable.just(programStage.programStageDataElements()), listEventsByOrgUnitProgram(organisationUnitId, programId),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override
@@ -309,8 +313,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 .map(new Func1<Program, ProgramStage>() {
                     @Override
                     public ProgramStage call(Program program) {
-                        if (program != null && ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
-                            return program.getProgramStages().get(0);
+                        if (program != null && ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
+                            return program.programStages().get(0);
                         }
                         return null;
                     }
@@ -322,11 +326,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             throw new IllegalArgumentException("In order to create event, " +
                                     "we need program stage to be in place");
                         }
-                        Event event = new Event();
-                        event.setOrgUnit(orgUnitId);
-                        event.setProgram(programId);
-                        event.setProgramStage(programStage.getUid());
-                        event.setStatus(EventStatus.ACTIVE);
+
+                        Event.Builder builder = Event.builder().organisationUnit(orgUnitId).program(programId).programStage(programStage.uid()).status(EventStatus.ACTIVE);
+
 
                         String eventDateString = Calendar.getInstance().getTime().toString();
                         Date eventDate = null;
@@ -336,7 +338,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             e.printStackTrace();
                         }
 
-                        event.setEventDate(eventDate);
+                        builder.eventDate(eventDate);
+
+                        Event event = builder.build();
 
                         eventInteractor.store().save(event);
                         return event;
@@ -348,7 +352,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Event event) {
                         if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivity(event.getUid(), event.getProgram());
+                            selectorView.navigateToFormSectionActivity(event.uid(), event.program());
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -432,8 +436,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         }
 
         // sort events by eventDate
-        Collections.sort(events, Event.DATE_COMPARATOR);
-        Collections.reverse(events);
+        Collections.sort(events, Event.DESCENDING_EVENT_DATE_COMPARATOR);
 
         // retrieve state map for given events
         // it is done synchronously
@@ -445,11 +448,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             // status of event
             ReportEntity.Status status;
             // get state of event from database
-            State state = event.getState();
+            State state = event.state();
             // State state = eventInteractor.get(event).toBlocking().first();
 
             logger.d(TAG, "State action for event " + event + " is " + state.toString());
-            switch (event.getState()) {
+            switch (event.state()) {
                 case SYNCED: {
                     status = ReportEntity.Status.SENT;
                     break;
@@ -472,16 +475,18 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 }
             }
 
-            Map<String, String> dataElementToValueMap =
-                    mapDataElementToValue(event.getDataValues());
+            List<TrackedEntityDataValue> trackedEntityDataValues = trackedEntityDataValueInteractor.store().query(event.uid());
 
-            dataElementToValueMap.put(Event.EVENT_DATE_KEY,
-                    event.getEventDate().toString());
-            dataElementToValueMap.put(Event.STATUS_KEY, event.getStatus().toString());
+            Map<String, String> dataElementToValueMap =
+                    mapDataElementToValue(trackedEntityDataValues);
+
+            dataElementToValueMap.put(ReportEntityFilter.DATE_KEY,
+                    event.eventDate().toString());
+            dataElementToValueMap.put(ReportEntityFilter.STATUS_KEY, event.status().toString());
 
             reportEntities.add(
                     new ReportEntity(
-                            event.getUid(),
+                            event.uid(),
                             status,
                             dataElementToValueMap));
         }
@@ -492,19 +497,19 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             List<ProgramStageDataElement> dataElements) {
 
         ArrayList<ReportEntityFilter> defaultFilters = new ArrayList<>();
-        defaultFilters.add(new ReportEntityFilter(Event.EVENT_DATE_KEY, Event.EVENT_DATE_LABEL, true));
-        defaultFilters.add(new ReportEntityFilter(Event.STATUS_KEY, Event.STATUS_LABEL, true));
+        defaultFilters.add(new ReportEntityFilter(ReportEntityFilter.DATE_KEY, ReportEntityFilter.DATE_LABEL, true));
+        defaultFilters.add(new ReportEntityFilter(ReportEntityFilter.STATUS_KEY, ReportEntityFilter.STATUS_LABEL, true));
 
         if (dataElements != null && !dataElements.isEmpty()) {
             for (ProgramStageDataElement programStageDataElement : dataElements) {
-                DataElement dataElement = programStageDataElement.getDataElement();
-                String dataElementName = dataElement.getFormName();
+                DataElement dataElement = programStageDataElement.dataElement();
+                String dataElementName = dataElement.formName();
                 //if getFormName is empty use getDisplayName instead:
                 if (dataElementName == null || dataElementName.isEmpty()) {
-                    dataElementName = dataElement.getDisplayName();
+                    dataElementName = dataElement.displayName();
                 }
-                boolean defaultViewSetting = programStageDataElement.isDisplayInReports();
-                defaultFilters.add(new ReportEntityFilter(dataElement.getUid(), dataElementName, defaultViewSetting));
+                boolean defaultViewSetting = programStageDataElement.displayInReports();
+                defaultFilters.add(new ReportEntityFilter(dataElement.uid(), dataElementName, defaultViewSetting));
             }
         }
         return defaultFilters;
@@ -517,8 +522,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         if (dataValues != null && !dataValues.isEmpty()) {
             for (TrackedEntityDataValue dataValue : dataValues) {
 
-                String value = !isEmpty(dataValue.getValue()) ? dataValue.getValue() : "";
-                dataElementToValueMap.put(dataValue.getDataElement(), value);
+                String value = !isEmpty(dataValue.value()) ? dataValue.value() : "";
+                dataElementToValueMap.put(dataValue.dataElement(), value);
             }
         }
         return dataElementToValueMap;
@@ -549,21 +554,21 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             // creating organisation unit picker items
             OrganisationUnit organisationUnit = organisationUnitMap.get(unitKey);
             Picker organisationUnitPicker = new Picker.Builder()
-                    .id(organisationUnit.getUid())
-                    .name(organisationUnit.getDisplayName())
+                    .id(organisationUnit.uid())
+                    .name(organisationUnit.displayName())
                     .hint(chooseProgram)
                     .parent(rootPicker)
                     .build();
 
-            if (organisationUnit.getPrograms() != null && !organisationUnit.getPrograms().isEmpty()) {
-                for (Program program : organisationUnit.getPrograms()) {
-                    Program assignedProgram = assignedProgramsMap.get(program.getUid());
+            if (organisationUnit.programs() != null && !organisationUnit.programs().isEmpty()) {
+                for (Program program : organisationUnit.programs()) {
+                    Program assignedProgram = assignedProgramsMap.get(program.uid());
 
                     if (assignedProgram != null && ProgramType.WITHOUT_REGISTRATION
-                            .equals(assignedProgram.getProgramType())) {
+                            .equals(assignedProgram.programType())) {
                         Picker programPicker = new Picker.Builder()
-                                .id(assignedProgram.getUid())
-                                .name(assignedProgram.getDisplayName())
+                                .id(assignedProgram.uid())
+                                .name(assignedProgram.displayName())
                                 .parent(organisationUnitPicker)
                                 .build();
                         organisationUnitPicker.addChild(programPicker);
@@ -574,13 +579,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         }
 
         // set saved selections or default ones:
-        if (sessionPreferences.getSelectedPickerUid(0) != null) {
+/*        if (sessionPreferences.getSelectedPickerUid(0) != null) {
             traverseAndSetSavedSelection(rootPicker);
         } else {
             // Traverse the tree. If there is a path with nodes
             // which have only one child, set default selection
             traverseAndSetDefaultSelection(rootPicker);
-        }
+        }*/
         return rootPicker;
     }
 
@@ -619,6 +624,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     private Observable<Event> getEvent(String uid) {
-        return Observable.just(eventInteractor.store().queryByUid(uid));
+        return Observable.just(eventInteractor.store().query(uid));
     }
 }

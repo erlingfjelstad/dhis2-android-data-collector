@@ -26,31 +26,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app;
+package org.hisp.dhis.android.app.selector;
 
-import org.hisp.dhis.android.app.selector.SelectorFragment;
-import org.hisp.dhis.android.app.sync.SyncAdapter;
+import android.support.annotation.StringDef;
 
-import dagger.Subcomponent;
+import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.Picker;
+import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
+import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 
-@PerUser
-@Subcomponent(
-        modules = {
-                UserModule.class
-        }
-)
-public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.commons.UserComponent {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.List;
 
-    //------------------------------------------------------------------------
-    // Sub-modules
-    //------------------------------------------------------------------------
+public interface SelectorView extends View {
+    String ID_CHOOSE_ORGANISATION_UNIT = "chooseOrganisationUnit";
+    String ID_CHOOSE_PROGRAM = "chooseProgram";
+    String ID_NO_PROGRAMS = "noPrograms";
 
-    //------------------------------------------------------------------------
-    // Injection targets
-    //------------------------------------------------------------------------
+    void showProgressBar();
 
-    void inject(SyncAdapter syncAdapter);
+    void hideProgressBar();
 
-    void inject(SelectorFragment selectorFragment);
+    void showPickers(Picker picker);
+
+    void showReportEntities(List<ReportEntity> reportEntities);
+
+    void showFilterOptionItem(boolean showItem);
+
+    void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters);
+
+    void showNoOrganisationUnitsError();
+
+    void showError(String message);
+
+    void showUnexpectedError(String message);
+
+    void onReportEntityDeletionError(ReportEntity failedEntity);
+
+    void navigateToFormSectionActivity(String eventUid, String programUid);
+
+    String getPickerLabel(@PickerLabelId String pickerLabelId);
+
+    void setReportEntityLabelFilters(List<ReportEntityFilter> filters);
+
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({
+            ID_CHOOSE_ORGANISATION_UNIT,
+            ID_CHOOSE_PROGRAM,
+            ID_NO_PROGRAMS
+    })
+    @interface PickerLabelId {
+    }
 }
-

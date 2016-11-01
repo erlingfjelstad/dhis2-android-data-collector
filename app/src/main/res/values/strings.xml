@@ -3,4 +3,6 @@
 
     <string name="drawer_item_placeholder">Items</string>
     <string name="placeholder">Something important goes here</string>
+    <string name="filter_data_elements">Select elements to show</string>
+    <string name="option_confirm">Ok</string>
 </resources>
