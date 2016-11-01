@@ -40,6 +40,8 @@ import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInterac
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenter;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenterImpl;
@@ -113,8 +115,8 @@ public final class UserModule {
 
     @Provides
     @PerUser
-    public LoginPresenter loginPresenter(@Nullable UserInteractor userInteractor, Logger logger) {
-        return new LoginPresenterImpl(userInteractor, null, logger);
+    public LoginPresenter loginPresenter(@Nullable UserInteractor userInteractor, ApiExceptionHandler apiExceptionHandler, Logger logger) {
+        return new LoginPresenterImpl(userInteractor, apiExceptionHandler, logger);
     }
 
     @Provides
