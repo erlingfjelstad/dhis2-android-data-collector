@@ -101,6 +101,12 @@ public final class UserModule {
 
     @Provides
     @PerUser
+    public ApiExceptionHandler apiExceptionHandler(Logger logger) {
+        return new ApiExceptionHandlerImpl(sdkInstance.application().getApplicationContext(), logger);
+    }
+
+    @Provides
+    @PerUser
     public LauncherPresenter launcherPresenter(@Nullable UserInteractor userInteractor) {
         return new LauncherPresenterImpl(userInteractor);
     }
