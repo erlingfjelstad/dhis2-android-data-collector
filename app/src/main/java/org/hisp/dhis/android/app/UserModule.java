@@ -62,7 +62,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 @Module
 public final class UserModule {
-    private final D2 sdkInstance;
+    private D2 sdkInstance;
 
     public UserModule(Application application) {
         this.sdkInstance = D2.builder(application).build();
@@ -73,9 +73,13 @@ public final class UserModule {
             throw new IllegalArgumentException("serverUrl must not be null");
         }
 
-        this.sdkInstance = D2.builder(application)
-                .baseUrl(serverUrl)
-                .build();
+        try {
+            this.sdkInstance = D2.builder(application)
+                    .baseUrl(serverUrl)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("serverUrl must be valid", e);
+        }
     }
 
     @Provides
