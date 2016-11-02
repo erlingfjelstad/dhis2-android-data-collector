@@ -29,7 +29,6 @@
 package org.hisp.dhis.android.app;
 
 import android.app.Application;
-import android.content.Context;
 
 import org.hisp.dhis.android.app.selector.SelectorPresenter;
 import org.hisp.dhis.android.app.selector.SelectorPresenterImpl;
@@ -40,6 +39,8 @@ import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInterac
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenter;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenterImpl;
@@ -62,7 +63,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 @Module
 public final class UserModule {
-    private final D2 sdkInstance;
+    private D2 sdkInstance;
 
     public UserModule(Application application) {
         this.sdkInstance = D2.builder(application).build();
@@ -73,9 +74,13 @@ public final class UserModule {
             throw new IllegalArgumentException("serverUrl must not be null");
         }
 
-        this.sdkInstance = D2.builder(application)
-                .baseUrl(serverUrl)
-                .build();
+        try {
+            this.sdkInstance = D2.builder(application)
+                    .baseUrl(serverUrl)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("serverUrl must be valid", e);
+        }
     }
 
     @Provides
@@ -97,14 +102,20 @@ public final class UserModule {
 
     @Provides
     @PerUser
+    public ApiExceptionHandler apiExceptionHandler(Logger logger) {
+        return new ApiExceptionHandlerImpl(sdkInstance.application().getApplicationContext(), logger);
+    }
+
+    @Provides
+    @PerUser
     public LauncherPresenter launcherPresenter(@Nullable UserInteractor userInteractor) {
         return new LauncherPresenterImpl(userInteractor);
     }
 
     @Provides
     @PerUser
-    public LoginPresenter loginPresenter(@Nullable UserInteractor userInteractor, Logger logger) {
-        return new LoginPresenterImpl(userInteractor, null, logger);
+    public LoginPresenter loginPresenter(@Nullable UserInteractor userInteractor, ApiExceptionHandler apiExceptionHandler, Logger logger) {
+        return new LoginPresenterImpl(userInteractor, apiExceptionHandler, logger);
     }
 
     @Provides
@@ -152,9 +163,9 @@ public final class UserModule {
 
     @Provides
     @PerUser
-    public SelectorPresenter selectorPresenter(Context context) {
+    public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, Logger logger) {
         return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues()
-                , null, syncWrapper(), null, null);
+                , null, syncWrapper(), apiExceptionHandler, logger);
     }
 
     @Provides
