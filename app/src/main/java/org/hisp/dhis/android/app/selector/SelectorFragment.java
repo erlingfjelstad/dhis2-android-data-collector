@@ -72,6 +72,7 @@ import org.hisp.dhis.client.sdk.ui.views.AbsAnimationListener;
 import org.hisp.dhis.client.sdk.ui.views.DividerDecoration;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -378,7 +379,11 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                selectorPresenter.sync();
+                try {
+                    selectorPresenter.sync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -498,7 +503,11 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                selectorPresenter.sync();
+                try {
+                    selectorPresenter.sync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return true;
             case R.id.action_filter:
                 showFilterDialog();

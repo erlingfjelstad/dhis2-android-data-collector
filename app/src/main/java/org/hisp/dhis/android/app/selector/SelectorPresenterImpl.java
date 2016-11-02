@@ -54,6 +54,7 @@ import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -146,7 +147,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         // check if metadata was synced,
         // if not, sync it
         if (!isSyncing && !hasSyncedBefore) {
-            sync();
+            try {
+                sync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         listPickers();
@@ -175,7 +180,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     @Override
-    public void sync() {
+    public void sync() throws IOException {
         selectorView.showProgressBar();
         isSyncing = true;
         subscription.add(syncWrapper.syncMetaData()

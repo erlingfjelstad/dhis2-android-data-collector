@@ -28,21 +28,23 @@
 
 package org.hisp.dhis.android.app.sync;
 
+import org.hisp.dhis.client.sdk.core.MetadataTask;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInteractor;
+import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
-import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
-import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import rx.Observable;
+import rx.Single;
+import rx.SingleSubscriber;
 import rx.Subscriber;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -54,6 +56,9 @@ public class SyncWrapper {
 
     // metadata
     private final OrganisationUnitInteractor organisationUnitInteractor;
+    private final OptionSetInteractor optionSetInteractor;
+    private final UserInteractor userInteractor;
+    private final TrackedEntityInteractor trackedEntityInteractor;
     private final ProgramInteractor programInteractor;
 
     // data
@@ -62,57 +67,126 @@ public class SyncWrapper {
     public SyncWrapper(OrganisationUnitInteractor organisationUnitInteractor,
                        ProgramInteractor programInteractor,
                        EventInteractor eventInteractor,
-                       SyncDateWrapper syncDateWrapper
-    ) {
+                       SyncDateWrapper syncDateWrapper,
+                       OptionSetInteractor optionSetInteractor,
+                       UserInteractor userInteractor,
+                       TrackedEntityInteractor trackedEntityInteractor) {
         this.organisationUnitInteractor = organisationUnitInteractor;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.syncDateWrapper = syncDateWrapper;
+        this.optionSetInteractor = optionSetInteractor;
+        this.userInteractor = userInteractor;
+        this.trackedEntityInteractor = trackedEntityInteractor;
     }
 
 
-    public Observable<List<Program>> syncMetaData() {
-        Set<ProgramType> programTypes = new HashSet<>();
-        programTypes.add(ProgramType.WITHOUT_REGISTRATION);
+    public Observable<List<Program>> syncMetaData() throws IOException {
+        final MetadataTask task = new MetadataTask(organisationUnitInteractor,
+                userInteractor,
+                programInteractor,
+                optionSetInteractor,
+                trackedEntityInteractor);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//                try {
+//                    task.sync();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+        return Observable.create(new Observable.OnSubscribe<List<Program>>() {
+            @Override
+            public void call(Subscriber<? super List<Program>> subscriber) {
+                try {
+                    task.sync();
+                    subscriber.onNext(programInteractor.store().queryAll());
+                } catch (IOException e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
 
-        return Observable.zip(Observable.create(new Observable.OnSubscribe<List<OrganisationUnit>>() {
-                    @Override
-                    public void call(Subscriber<? super List<OrganisationUnit>> subscriber) {
-                        try {
-                            List<OrganisationUnit> orgUnits = organisationUnitInteractor.api().list(null).execute().body().items();
-                            organisationUnitInteractor.store().save(orgUnits);
-                            subscriber.onNext(orgUnits);
-                        } catch (IOException e) {
-                            subscriber.onError(e);
-                        } finally {
-                            subscriber.onCompleted();
-                        }
-                    }
-                }),
-                Observable.create(new Observable.OnSubscribe<List<Program>>() {
-                    @Override
-                    public void call(Subscriber<? super List<Program>> subscriber) {
-                        try {
-                            List<Program> programs = programInteractor.api().list(null).execute().body().items();
-                            programInteractor.store().save(programs);
-                            subscriber.onNext(programs);
-                        } catch (IOException e) {
-                            subscriber.onError(e);
-                        } finally {
-                            subscriber.onCompleted();
-                        }
 
-                    }
-                }),
-                new Func2<List<OrganisationUnit>, List<Program>, List<Program>>() {
-                    @Override
-                    public List<Program> call(List<OrganisationUnit> units, List<Program> programs) {
-                        if (syncDateWrapper != null) {
-                            syncDateWrapper.setLastSyncedNow();
-                        }
-                        return programs;
-                    }
-                });
+//        return Single.zip(Single.create(new Single.OnSubscribe<List<Program>>() {
+//                                            @Override
+//                                            public void call(SingleSubscriber<? super List<Program>> singleSubscriber) {
+//                                                try {
+//                                                    task.sync();
+//                                                    singleSubscriber.onSuccess(programInteractor.store().queryAll());
+//                                                } catch (IOException e) {
+//                                                    singleSubscriber.onError(e);
+//                                                }
+//                                            }
+//                                        }, new Func1<Object, List<Program>>() {
+//                                            @Override
+//                                            public List<Program> call(Object program) {
+//                                                return null;
+//                                            }
+//                                        });
+//        }), new Func1<>() {
+//            @Override
+//            public Object call(Object o) {
+//                return null;
+//            }
+//        });
+
+
+//                new Func1<List<Program>, List<Program>>() {
+//            @Override
+//            public List<Program> call(List<Program> programs) {
+//                if (syncDateWrapper != null) {
+//                    syncDateWrapper.setLastSyncedNow();
+//                }
+//                return programInteractor.store().queryAll();
+//            }
+//        }));
+
+
+//        Set<ProgramType> programTypes = new HashSet<>();
+//        programTypes.add(ProgramType.WITHOUT_REGISTRATION);
+//
+//        return Observable.zip(Observable.create(new Observable.OnSubscribe<List<OrganisationUnit>>() {
+//                    @Override
+//                    public void call(Subscriber<? super List<OrganisationUnit>> subscriber) {
+//                        try {
+//                            List<OrganisationUnit> orgUnits = organisationUnitInteractor.api().list(null).execute().body().items();
+//                            organisationUnitInteractor.store().save(orgUnits);
+//                            subscriber.onNext(orgUnits);
+//                        } catch (IOException e) {
+//                            subscriber.onError(e);
+//                        } finally {
+//                            subscriber.onCompleted();
+//                        }
+//                    }
+//                }),
+//                Observable.create(new Observable.OnSubscribe<List<Program>>() {
+//                    @Override
+//                    public void call(Subscriber<? super List<Program>> subscriber) {
+//                        try {
+//                            List<Program> programs = programInteractor.api().list(null).execute().body().items();
+//                            programInteractor.store().save(programs);
+//                            subscriber.onNext(programs);
+//                        } catch (IOException e) {
+//                            subscriber.onError(e);
+//                        } finally {
+//                            subscriber.onCompleted();
+//                        }
+//
+//                    }
+//                }),
+//                new Func2<List<OrganisationUnit>, List<Program>, List<Program>>() {
+//                    @Override
+//                    public List<Program> call(List<OrganisationUnit> units, List<Program> programs) {
+//                        if (syncDateWrapper != null) {
+//                            syncDateWrapper.setLastSyncedNow();
+//                        }
+//                        return programs;
+//                    }
+//                });
     }
 
     public Observable<List<Event>> syncData() {
@@ -177,7 +251,7 @@ public class SyncWrapper {
 //                });
     }
 
-    public Observable<List<Event>> backgroundSync() {
+    public Observable<List<Event>> backgroundSync() throws IOException {
         return syncMetaData()
                 .subscribeOn(Schedulers.io())
                 .switchMap(new Func1<List<Program>, Observable<List<Event>>>() {
