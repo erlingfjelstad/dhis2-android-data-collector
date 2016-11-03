@@ -33,11 +33,12 @@ import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface SelectorPresenter extends Presenter {
-    void sync();
+    void sync() throws IOException;
 
     void listPickers();
 

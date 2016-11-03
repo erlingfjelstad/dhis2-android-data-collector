@@ -151,7 +151,13 @@ public final class UserModule {
     @Provides
     @PerUser
     public SyncWrapper syncWrapper() {
-        return new SyncWrapper(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), syncDateWrapper(appPreferences()));
+        return new SyncWrapper(sdkInstance.organisationUnits(),
+                sdkInstance.programs(),
+                sdkInstance.events(),
+                syncDateWrapper(appPreferences()),
+                sdkInstance.optionSets(),
+                sdkInstance.me(),
+                sdkInstance.trackedEntities());
     }
 
 
