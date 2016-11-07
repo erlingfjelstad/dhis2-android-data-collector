@@ -379,11 +379,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                try {
-                    selectorPresenter.sync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                sync();
             }
         });
 
@@ -503,11 +499,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                try {
-                    selectorPresenter.sync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                sync();
                 return true;
             case R.id.action_filter:
                 showFilterDialog();
@@ -709,6 +701,14 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
         }
 
         return null;
+    }
+
+    private void sync() {
+        try {
+            selectorPresenter.sync();
+        } catch (IOException e) {
+            selectorPresenter.handleError(e);
+        }
     }
 
     private void showErrorDialog(String title, String message) {

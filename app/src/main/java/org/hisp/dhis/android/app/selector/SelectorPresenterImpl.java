@@ -166,7 +166,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     @Override
     public void onPickersSelectionsChanged(List<Picker> pickerList) {
         if (pickerList != null) {
-//            sessionPreferences.clearSelectedPickers();
+            sessionPreferences.clearSelectedPickers();
             for (int index = 0; index < pickerList.size(); index++) {
                 Picker current = pickerList.get(index);
                 Picker child = current.getSelectedChild();
@@ -174,7 +174,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     return;
                 }
                 String pickerId = child.getId();
-                //sessionPreferences.setSelectedPickerUid(index, pickerId);
+                sessionPreferences.setSelectedPickerUid(index, pickerId);
             }
         }
     }
@@ -228,7 +228,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     @Override
     public void listPickers() {
-        //logger.d(TAG, "listPickers()");
+        logger.d(TAG, "listPickers()");
         subscription.add(Observable.zip(
                 getOrganisationUnits(),
                 getPrograms(),
@@ -250,6 +250,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        selectorView.showNoOrganisationUnitsError();
                         logger.e(TAG, "Failed listing pickers.", throwable);
                     }
                 }));
@@ -537,6 +538,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     /*
      * Goes through given organisation units and programs and builds Picker tree
      */
+    //TODO: Check and download authorities for userCredentials to see if user is allowed to data entry for the different ProgramTypes
     private Picker createPickerTree(List<OrganisationUnit> units, List<Program> programs) {
         Map<String, OrganisationUnit> organisationUnitMap = ModelUtils.toMap(units);
         Map<String, Program> assignedProgramsMap = ModelUtils.toMap(programs);
@@ -548,7 +550,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
         if (selectorView != null &&
                 (organisationUnitMap == null || organisationUnitMap.isEmpty())) {
-            selectorView.showNoOrganisationUnitsError();
+            //TODO: Moved line below temporarily to rx catch block in listPickers() chain
+//            selectorView.showNoOrganisationUnitsError();
         }
 
         Picker rootPicker = new Picker.Builder()
@@ -569,8 +572,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 for (Program program : organisationUnit.programs()) {
                     Program assignedProgram = assignedProgramsMap.get(program.uid());
 
-                    if (assignedProgram != null && ProgramType.WITHOUT_REGISTRATION
-                            .equals(assignedProgram.programType())) {
+                    if (assignedProgram != null) {
                         Picker programPicker = new Picker.Builder()
                                 .id(assignedProgram.uid())
                                 .name(assignedProgram.displayName())
@@ -584,13 +586,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         }
 
         // set saved selections or default ones:
-/*        if (sessionPreferences.getSelectedPickerUid(0) != null) {
+        if (sessionPreferences.getSelectedPickerUid(0) != null) {
             traverseAndSetSavedSelection(rootPicker);
         } else {
             // Traverse the tree. If there is a path with nodes
             // which have only one child, set default selection
             traverseAndSetDefaultSelection(rootPicker);
-        }*/
+        }
         return rootPicker;
     }
 

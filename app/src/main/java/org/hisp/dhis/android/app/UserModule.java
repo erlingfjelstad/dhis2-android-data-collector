@@ -29,6 +29,7 @@
 package org.hisp.dhis.android.app;
 
 import android.app.Application;
+import android.content.Context;
 
 import org.hisp.dhis.android.app.selector.SelectorPresenter;
 import org.hisp.dhis.android.app.selector.SelectorPresenterImpl;
@@ -41,6 +42,8 @@ import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenter;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.HomePresenterImpl;
@@ -160,12 +163,17 @@ public final class UserModule {
                 sdkInstance.trackedEntities());
     }
 
+    @Provides
+    @PerUser
+    public SessionPreferences sessionPreferences(Context context) {
+        return new SessionPreferencesImpl(context);
+    }
 
     @Provides
     @PerUser
-    public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, Logger logger) {
+    public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
         return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues()
-                , null, syncWrapper(), apiExceptionHandler, logger);
+                , sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
     }
 
     @Provides

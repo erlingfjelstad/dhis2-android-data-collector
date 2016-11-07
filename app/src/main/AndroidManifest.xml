@@ -9,6 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.Base">
 
+
         <activity android:name="org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

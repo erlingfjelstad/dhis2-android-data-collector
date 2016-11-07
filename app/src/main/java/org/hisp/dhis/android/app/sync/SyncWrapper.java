@@ -46,9 +46,6 @@ import rx.Observable;
 import rx.Single;
 import rx.SingleSubscriber;
 import rx.Subscriber;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 
 public class SyncWrapper {
 
@@ -81,34 +78,34 @@ public class SyncWrapper {
     }
 
 
-    public Observable<List<Program>> syncMetaData() throws IOException {
+    public Single<List<Program>> syncMetaData() throws IOException {
         final MetadataTask task = new MetadataTask(organisationUnitInteractor,
                 userInteractor,
                 programInteractor,
                 optionSetInteractor,
                 trackedEntityInteractor);
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//                try {
-//                    task.sync();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-        return Observable.create(new Observable.OnSubscribe<List<Program>>() {
+
+        return Single.create(new Single.OnSubscribe<List<Program>>() {
             @Override
-            public void call(Subscriber<? super List<Program>> subscriber) {
+            public void call(SingleSubscriber<? super List<Program>> singleSubscriber) {
                 try {
                     task.sync();
-                    subscriber.onNext(programInteractor.store().queryAll());
+                    singleSubscriber.onSuccess(programInteractor.store().queryAll());
                 } catch (IOException e) {
-                    subscriber.onError(e);
+                    singleSubscriber.onError(e);
                 }
             }
         });
+
+//        @Override
+//            public void call(Subscriber<? super List<Program>> subscriber) {
+//                try {
+//                    task.sync();
+//                    subscriber.onNext(programInteractor.store().queryAll());
+//                } catch (IOException e) {
+//                    subscriber.onError(e);
+//                }
+//            }
 
 
 //        return Single.zip(Single.create(new Single.OnSubscribe<List<Program>>() {
@@ -251,18 +248,18 @@ public class SyncWrapper {
 //                });
     }
 
-    public Observable<List<Event>> backgroundSync() throws IOException {
-        return syncMetaData()
-                .subscribeOn(Schedulers.io())
-                .switchMap(new Func1<List<Program>, Observable<List<Event>>>() {
-                    @Override
-                    public Observable<List<Event>> call(List<Program> programs) {
-                        if (programs != null) {
-                            return syncData();
-                        }
-
-                        return Observable.empty();
-                    }
-                });
-    }
+//    public Observable<List<Event>> backgroundSync() throws IOException {
+//        return syncMetaData()
+//                .subscribeOn(Schedulers.io())
+//                .switchMap(new Func1<List<Program>, Observable<List<Event>>>() {
+//                    @Override
+//                    public Observable<List<Event>> call(List<Program> programs) {
+//                        if (programs != null) {
+//                            return syncData();
+//                        }
+//
+//                        return Observable.empty();
+//                    }
+//                });
+//    }
 }
