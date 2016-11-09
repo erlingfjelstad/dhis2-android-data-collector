@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.hisp.dhis.android.app">
+    package="org.hisp.dhis.android.app"
+    android:installLocation="internalOnly">
 
     <application
         android:name=".SkeletonApp"
@@ -22,13 +23,15 @@
             android:name=".views.HomeActivity"
             android:theme="@style/AppTheme.Main" />
 
+        <activity android:name=".views.FormSectionActivity"/>
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="${fabric_api_key}" />
 
         <!-- Sync service : -->
         <service
-            android:name=".sync.SyncService"
+            android:name=".model.SyncService"
             android:exported="false">
 
             <intent-filter>

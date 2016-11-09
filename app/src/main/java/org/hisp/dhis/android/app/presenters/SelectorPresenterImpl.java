@@ -26,9 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app.selector;
+package org.hisp.dhis.android.app.presenters;
 
-import org.hisp.dhis.android.app.sync.SyncWrapper;
+import org.hisp.dhis.android.app.model.SyncWrapper;
+import org.hisp.dhis.android.app.views.SelectorView;
 import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
@@ -52,11 +53,11 @@ import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
+import org.hisp.dhis.client.sdk.utils.CodeGenerator;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -90,7 +91,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private final SyncWrapper syncWrapper;
     private final Logger logger;
     private final SimpleDateFormat simpleDateFormat;
-    ;
     private CompositeSubscription subscription;
     private boolean hasSyncedBefore;
     private SelectorView selectorView;
@@ -316,57 +316,62 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     public void createEvent(final String orgUnitId, final String programId) {
 
         subscription.add(getProgram(programId)
-                .map(new Func1<Program, ProgramStage>() {
-                    @Override
-                    public ProgramStage call(Program program) {
-                        if (program != null && ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
-                            return program.programStages().get(0);
-                        }
-                        return null;
-                    }
-                })
-                .map(new Func1<ProgramStage, Event>() {
-                    @Override
-                    public Event call(ProgramStage programStage) {
-                        if (programStage == null) {
-                            throw new IllegalArgumentException("In order to create event, " +
-                                    "we need program stage to be in place");
-                        }
+                        .map(new Func1<Program, ProgramStage>() {
+                            @Override
+                            public ProgramStage call(Program program) {
+                                if (program != null && ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
+                                    return program.programStages().get(0);
+                                }
+                                return null;
+                            }
+                        })
+                        .map(new Func1<ProgramStage, Event>() {
+                            @Override
+                            public Event call(ProgramStage programStage) {
+                                if (programStage == null) {
+                                    throw new IllegalArgumentException("In order to create event, " +
+                                            "we need program stage to be in place");
+                                }
 
-                        Event.Builder builder = Event.builder().organisationUnit(orgUnitId).program(programId).programStage(programStage.uid()).status(EventStatus.ACTIVE);
+                                Event.Builder builder = Event.builder()
+                                        .uid(CodeGenerator.generateCode())
+                                        .created(Calendar.getInstance().getTime())
+                                        .state(State.TO_POST)
+                                        .organisationUnit(orgUnitId)
+                                        .program(programId)
+                                        .programStage(programStage.uid())
+                                        .status(EventStatus.ACTIVE);
 
+                                Date eventDate = Calendar.getInstance().getTime();
+//                        try {
+//                            eventDate = simpleDateFormat.format(Calendar.getInstance(LocaleUtils.getLocale()).getTime());
+//                        } catch (ParseException e) {
+//                            e.printStackTrace();
+//                        }
 
-                        String eventDateString = Calendar.getInstance().getTime().toString();
-                        Date eventDate = null;
-                        try {
-                            eventDate = simpleDateFormat.parse(eventDateString);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+                                builder.eventDate(eventDate);
 
-                        builder.eventDate(eventDate);
+                                Event event = builder.build();
 
-                        Event event = builder.build();
-
-                        eventInteractor.store().save(event);
-                        return event;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Event>() {
-                    @Override
-                    public void call(Event event) {
-                        if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivity(event.uid(), event.program());
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        logger.e(TAG, "Failed creating event", throwable);
-                    }
-                })
+                                eventInteractor.store().save(event);
+                                return event;
+                            }
+                        })
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Event>() {
+                            @Override
+                            public void call(Event event) {
+                                if (selectorView != null) {
+                                    selectorView.navigateToFormSectionActivity(event.uid(), event.program(), event.programStage());
+                                }
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                logger.e(TAG, "Failed creating event", throwable);
+                            }
+                        })
         );
     }
 

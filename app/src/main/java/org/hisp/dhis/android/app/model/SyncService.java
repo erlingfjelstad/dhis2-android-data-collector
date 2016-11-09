@@ -1,10 +1,12 @@
-package org.hisp.dhis.android.app.sync;
+package org.hisp.dhis.android.app.model;
 
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+
+import org.hisp.dhis.android.app.model.SyncAdapter;
 
 public class SyncService extends Service {
 

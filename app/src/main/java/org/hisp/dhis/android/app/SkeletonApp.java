@@ -11,11 +11,18 @@ import org.hisp.dhis.client.sdk.ui.bindings.App;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.NavigationHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLoginActivity;
 
+import javax.inject.Inject;
+
 import io.fabric.sdk.android.Fabric;
+
+import static android.R.attr.accountType;
+import static org.hisp.dhis.android.app.R.string.authority;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class SkeletonApp extends App {
     private AppComponent appComponent;
     private UserComponent userComponent;
+    private FormComponent formComponent;
 
     @Override
     public void onCreate() {
@@ -36,6 +43,7 @@ public class SkeletonApp extends App {
                 .appModule(new AppModule(this))
                 .build();
         userComponent = appComponent.plus(new UserModule(this));
+
     }
 
     @Override
@@ -57,5 +65,20 @@ public class SkeletonApp extends App {
     @Override
     public UserComponent createUserComponent(String serverUrl) {
         return (userComponent = appComponent.plus(new UserModule(this, serverUrl)));
+    }
+
+    public FormComponent createFormComponent() {
+        isNull(userComponent, "UserComponent must not be null");
+
+        formComponent = userComponent.plus(new FormModule());
+        return formComponent;
+    }
+
+    public FormComponent getFormComponent() {
+        return formComponent;
+    }
+
+    public void releaseFormComponent() {
+        formComponent = null;
     }
 }

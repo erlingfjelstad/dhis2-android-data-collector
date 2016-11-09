@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
 import org.hisp.dhis.android.app.R;
-import org.hisp.dhis.android.app.selector.SelectorFragment;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultHomeActivity;
 import org.hisp.dhis.client.sdk.ui.fragments.WrapperFragment;
 

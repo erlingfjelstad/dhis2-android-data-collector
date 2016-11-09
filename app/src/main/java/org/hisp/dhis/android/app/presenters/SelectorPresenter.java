@@ -26,57 +26,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app.selector;
+package org.hisp.dhis.android.app.presenters;
 
-import android.support.annotation.StringDef;
-
-import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface SelectorView extends View {
-    String ID_CHOOSE_ORGANISATION_UNIT = "chooseOrganisationUnit";
-    String ID_CHOOSE_PROGRAM = "chooseProgram";
-    String ID_NO_PROGRAMS = "noPrograms";
+public interface SelectorPresenter extends Presenter {
+    void sync() throws IOException;
 
-    void showProgressBar();
+    void listPickers();
 
-    void hideProgressBar();
+    void listEvents(String organisationUnitId, String programId);
 
-    void showPickers(Picker picker);
+    void createEvent(String organisationUnitId, String programId);
 
-    void showReportEntities(List<ReportEntity> reportEntities);
+    void deleteEvent(ReportEntity reportEntity);
 
-    void showFilterOptionItem(boolean showItem);
+    void onPickersSelectionsChanged(List<Picker> pickerList);
 
-    void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters);
+    void handleError(final Throwable throwable);
 
-    void showNoOrganisationUnitsError();
-
-    void showError(String message);
-
-    void showUnexpectedError(String message);
-
-    void onReportEntityDeletionError(ReportEntity failedEntity);
-
-    void navigateToFormSectionActivity(String eventUid, String programUid);
-
-    String getPickerLabel(@PickerLabelId String pickerLabelId);
-
-    void setReportEntityLabelFilters(List<ReportEntityFilter> filters);
-
-    @Retention(RetentionPolicy.SOURCE)
-    @StringDef({
-            ID_CHOOSE_ORGANISATION_UNIT,
-            ID_CHOOSE_PROGRAM,
-            ID_NO_PROGRAMS
-    })
-    @interface PickerLabelId {
-    }
+    void setReportEntityDataElementFilters(String programId, ArrayList<ReportEntityFilter> filters);
 }

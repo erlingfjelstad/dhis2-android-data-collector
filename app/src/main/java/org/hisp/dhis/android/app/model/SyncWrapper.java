@@ -26,7 +26,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app.sync;
+package org.hisp.dhis.android.app.model;
 
 import org.hisp.dhis.client.sdk.core.MetadataTask;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;

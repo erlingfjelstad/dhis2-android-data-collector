@@ -26,31 +26,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app.selector;
+package org.hisp.dhis.android.app.views;
 
-import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
+import android.support.annotation.StringDef;
+
+import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 
-import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface SelectorPresenter extends Presenter {
-    void sync() throws IOException;
+public interface SelectorView extends View {
+    String ID_CHOOSE_ORGANISATION_UNIT = "chooseOrganisationUnit";
+    String ID_CHOOSE_PROGRAM = "chooseProgram";
+    String ID_NO_PROGRAMS = "noPrograms";
 
-    void listPickers();
+    void showProgressBar();
 
-    void listEvents(String organisationUnitId, String programId);
+    void hideProgressBar();
 
-    void createEvent(String organisationUnitId, String programId);
+    void showPickers(Picker picker);
 
-    void deleteEvent(ReportEntity reportEntity);
+    void showReportEntities(List<ReportEntity> reportEntities);
 
-    void onPickersSelectionsChanged(List<Picker> pickerList);
+    void showFilterOptionItem(boolean showItem);
 
-    void handleError(final Throwable throwable);
+    void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters);
 
-    void setReportEntityDataElementFilters(String programId, ArrayList<ReportEntityFilter> filters);
+    void showNoOrganisationUnitsError();
+
+    void showError(String message);
+
+    void showUnexpectedError(String message);
+
+    void onReportEntityDeletionError(ReportEntity failedEntity);
+
+    void navigateToFormSectionActivity(String eventUid, String programUid, String programStageUid);
+
+    String getPickerLabel(@PickerLabelId String pickerLabelId);
+
+    void setReportEntityLabelFilters(List<ReportEntityFilter> filters);
+
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({
+            ID_CHOOSE_ORGANISATION_UNIT,
+            ID_CHOOSE_PROGRAM,
+            ID_NO_PROGRAMS
+    })
+    @interface PickerLabelId {
+    }
 }

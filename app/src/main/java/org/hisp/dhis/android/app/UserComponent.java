@@ -28,8 +28,8 @@
 
 package org.hisp.dhis.android.app;
 
-import org.hisp.dhis.android.app.selector.SelectorFragment;
-import org.hisp.dhis.android.app.sync.SyncAdapter;
+import org.hisp.dhis.android.app.views.SelectorFragment;
+import org.hisp.dhis.android.app.model.SyncAdapter;
 
 import dagger.Subcomponent;
 
@@ -44,6 +44,8 @@ public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.comm
     //------------------------------------------------------------------------
     // Sub-modules
     //------------------------------------------------------------------------
+
+    FormComponent plus(FormModule formModule);
 
     //------------------------------------------------------------------------
     // Injection targets

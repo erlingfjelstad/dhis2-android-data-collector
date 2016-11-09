@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.android.app.selector;
+package org.hisp.dhis.android.app.views;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -60,6 +60,7 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.presenters.SelectorPresenter;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter.OnPickerListChangeListener;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
@@ -307,9 +308,9 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivity(String eventUid, String programUid) {
+    public void navigateToFormSectionActivity(String eventUid, String programUid, String programStageUid) {
         logger.d(TAG, String.format("Event with uid=%s is created", eventUid));
-        //FormSectionActivity.navigateToNewEvent(getActivity(), eventUid, programUid);
+        FormSectionActivity.navigateToNewEvent(getActivity(), eventUid, programUid, programStageUid);
     }
 
     @Override

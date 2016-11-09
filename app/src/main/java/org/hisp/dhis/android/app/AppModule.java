@@ -31,7 +31,16 @@ package org.hisp.dhis.android.app;
 import android.app.Application;
 import android.content.Context;
 
+import org.hisp.dhis.android.app.model.SyncWrapper;
+import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.commons.LoggerImpl;
+import org.hisp.dhis.client.sdk.ui.AppPreferences;
+import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferencesImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import javax.inject.Singleton;
@@ -40,7 +49,7 @@ import dagger.Module;
 import dagger.Provides;
 
 @Module
-public final class AppModule {
+public class AppModule {
     private final Application application;
 
     public AppModule(Application application) {
@@ -49,8 +58,14 @@ public final class AppModule {
 
     @Provides
     @Singleton
-    public Logger providesLogger() {
-        return new LoggerImpl();
+    public LocationProvider providesLocationProvider(Context context, Logger logger) {
+        return new LocationProviderImpl(context, logger);
+    }
+
+    @Provides
+    @Singleton
+    public Application providesApplication() {
+        return application;
     }
 
     @Provides
@@ -61,7 +76,8 @@ public final class AppModule {
 
     @Provides
     @Singleton
-    public Application providesApplication() {
-        return application;
+    public Logger providesLogger() {
+        return new LoggerImpl();
     }
+
 }

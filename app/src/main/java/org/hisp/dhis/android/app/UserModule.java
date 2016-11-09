@@ -31,10 +31,13 @@ package org.hisp.dhis.android.app;
 import android.app.Application;
 import android.content.Context;
 
-import org.hisp.dhis.android.app.selector.SelectorPresenter;
-import org.hisp.dhis.android.app.selector.SelectorPresenterImpl;
-import org.hisp.dhis.android.app.sync.SyncWrapper;
+import org.hisp.dhis.android.app.model.SyncWrapper;
+import org.hisp.dhis.android.app.presenters.SelectorPresenter;
+import org.hisp.dhis.android.app.presenters.SelectorPresenterImpl;
 import org.hisp.dhis.client.sdk.core.D2;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractorImpl;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
@@ -98,6 +101,50 @@ public final class UserModule {
     public UserInteractor userInteractor(D2 d2) {
         if (!isEmpty(d2.serverUrl())) {
             return d2.me();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public ProgramInteractor programInteractor(D2 d2) {
+        if(d2.programs() != null) {
+            return d2.programs();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public EventInteractor eventInteractor(D2 d2) {
+        if (d2.events() != null) {
+            return d2.events();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public OptionSetInteractor optionSetInteractor(D2 d2) {
+        if (d2.optionSets() != null) {
+            return d2.optionSets();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public TrackedEntityDataValueInteractor trackedEntityDataValueInteractor(D2 d2) {
+        if (d2.trackedEntityDataValues() != null) {
+            return d2.trackedEntityDataValues();
         }
 
         return null;
@@ -172,13 +219,7 @@ public final class UserModule {
     @Provides
     @PerUser
     public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
-        return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues()
-                , sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
-    }
-
-    @Provides
-    @PerUser
-    public TrackedEntityDataValueInteractor trackedEntityDataValueInteractor() {
-        return new TrackedEntityDataValueInteractorImpl(null);
+        return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues(),
+                sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
     }
 }

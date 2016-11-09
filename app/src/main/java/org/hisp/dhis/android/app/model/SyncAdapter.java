@@ -1,4 +1,4 @@
-package org.hisp.dhis.android.app.sync;
+package org.hisp.dhis.android.app.model;
 
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
