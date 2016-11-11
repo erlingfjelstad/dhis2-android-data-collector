@@ -55,8 +55,6 @@ public interface SelectorView extends View {
 
     void showFilterOptionItem(boolean showItem);
 
-    void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters);
-
     void showNoOrganisationUnitsError();
 
     void showError(String message);

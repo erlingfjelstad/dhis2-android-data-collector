@@ -32,19 +32,25 @@ import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.views.SelectorView;
 import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
+import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
+import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageDataElement;
+import org.hisp.dhis.client.sdk.models.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.program.ProgramType;
+import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.AppError;
@@ -85,7 +91,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private final OrganisationUnitInteractor organisationUnitInteractor;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
+    private final EnrollmentInteractor enrollmentInteractor;
     private final TrackedEntityDataValueInteractor trackedEntityDataValueInteractor;
+    private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
     private final SessionPreferences sessionPreferences;
     private final ApiExceptionHandler apiExceptionHandler;
     private final SyncWrapper syncWrapper;
@@ -100,15 +108,17 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     public SelectorPresenterImpl(OrganisationUnitInteractor interactor,
                                  ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
-                                 TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
-                                 SessionPreferences sessionPreferences,
+                                 EnrollmentInteractor enrollmentInteractor, TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
+                                 TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor, SessionPreferences sessionPreferences,
                                  SyncWrapper syncWrapper,
                                  ApiExceptionHandler apiExceptionHandler,
                                  Logger logger) {
         this.organisationUnitInteractor = interactor;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
+        this.enrollmentInteractor = enrollmentInteractor;
         this.trackedEntityDataValueInteractor = trackedEntityDataValueInteractor;
+        this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
         this.sessionPreferences = sessionPreferences;
         this.syncWrapper = syncWrapper;
         this.apiExceptionHandler = apiExceptionHandler;
@@ -257,7 +267,22 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     @Override
-    public void listEvents(final String organisationUnitId, final String programId) {
+    public void listItems(String organisationUnitId, String programId) {
+        Program program = getProgram(programId).toBlocking().first();
+        switch (program.programType()) {
+            case WITH_REGISTRATION:
+                listEnrollments(organisationUnitId, programId);
+                break;
+            case WITHOUT_REGISTRATION:
+                listEvents(organisationUnitId, programId);
+                break;
+            default:
+
+                break;
+        }
+    }
+
+    private void listEvents(final String organisationUnitId, final String programId) {
         subscription.add(getProgram(programId)
                 .switchMap(new Func1<Program, Observable<List<ReportEntity>>>() {
                     @Override
@@ -311,6 +336,53 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     }
                 }));
     }
+
+    private void listEnrollments(final String organisationUnitId, final String programId) {
+        subscription.add(getProgram(programId)
+                .switchMap(new Func1<Program, Observable<List<ReportEntity>>>() {
+                    @Override
+                    public Observable<List<ReportEntity>> call(Program program) {
+                        if (program == null) {
+                            throw new IllegalArgumentException(
+                                    "Program id doesn't exist");
+                        }
+
+                        return Observable.zip(Observable.just(program.programTrackedEntityAttributes()), listEnrollmentsByOrgUnitProgram(organisationUnitId, programId),
+                                new Func2<List<ProgramTrackedEntityAttribute>, List<Enrollment>, List<ReportEntity>>() {
+
+                                    @Override
+                                    public List<ReportEntity> call(List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes, List<Enrollment> enrollments) {
+                                        reportEntityDataElementFilter = sessionPreferences.getReportEntityDataModelFilters(
+                                                programId,
+                                                mapAttributeNameToDefaultViewSetting(programTrackedEntityAttributes));
+                                        return transformEnrollments(enrollments);
+                                    }
+                                });
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<ReportEntity>>() {
+                    @Override
+                    public void call(List<ReportEntity> reportEntities) {
+
+                        if (selectorView != null) {
+                            selectorView.setReportEntityLabelFilters(reportEntityDataElementFilter);
+                            selectorView.showFilterOptionItem(true);
+                            selectorView.showReportEntities(reportEntities);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (selectorView != null) {
+                            selectorView.showFilterOptionItem(false);
+                        }
+                        logger.e(TAG, "Failed loading events", throwable);
+                    }
+                }));
+    }
+
 
     @Override
     public void createEvent(final String orgUnitId, final String programId) {
@@ -435,8 +507,73 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     @Override
-    public void setReportEntityDataElementFilters(String programId, ArrayList<ReportEntityFilter> filters) {
+    public void setReportEntityDataElementFilters(String programId, List<ReportEntityFilter> filters) {
         sessionPreferences.setReportEntityDataModelFilters(programId, filters);
+    }
+
+    private List<ReportEntity> transformEnrollments(List<Enrollment> enrollments) {
+
+        // preventing additional work
+        if (enrollments == null || enrollments.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // sort events by eventDate
+        Collections.sort(enrollments, Enrollment.DESCENDING_ENROLLMENT_DATE_COMPARATOR);
+
+        // retrieve state map for given events
+        // it is done synchronously
+//        Map<Long, State> stateMap = eventInteractor.store().queryAll(events)
+//                .toBlocking().first();
+        List<ReportEntity> reportEntities = new ArrayList<>();
+
+        for (Enrollment enrollment : enrollments) {
+            // status of event
+            ReportEntity.Status status;
+            // get state of event from database
+            State state = enrollment.state();
+            // State state = eventInteractor.get(event).toBlocking().first();
+
+            logger.d(TAG, "State action for enrollment " + enrollment + " is " + state.toString());
+            switch (enrollment.state()) {
+                case SYNCED: {
+                    status = ReportEntity.Status.SENT;
+                    break;
+                }
+                case TO_POST: {
+                    status = ReportEntity.Status.TO_POST;
+                    break;
+                }
+                case TO_UPDATE: {
+                    status = ReportEntity.Status.TO_UPDATE;
+                    break;
+                }
+                case ERROR: {
+                    status = ReportEntity.Status.ERROR;
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException(
+                            "Unsupported event state: " + state.toString());
+                }
+            }
+
+            List<TrackedEntityAttributeValue> trackedEntityAttributeValues = trackedEntityAttributeValueInteractor.store().query(enrollment.uid());
+
+            Map<String, String> trackedEntityAttributeToValueMap =
+                    mapTrackedEntityAttributeToValue(trackedEntityAttributeValues);
+
+            trackedEntityAttributeToValueMap.put(ReportEntityFilter.DATE_KEY,
+                    enrollment.dateOfEnrollment().toString());
+            trackedEntityAttributeToValueMap.put(ReportEntityFilter.STATUS_KEY, enrollment.enrollmentStatus().toString());
+
+            reportEntities.add(
+                    new ReportEntity(
+                            enrollment.uid(),
+                            status,
+                            trackedEntityAttributeToValueMap));
+        }
+        return reportEntities;
     }
 
     private List<ReportEntity> transformEvents(List<Event> events) {
@@ -504,6 +641,24 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         return reportEntities;
     }
 
+    private ArrayList<ReportEntityFilter> mapAttributeNameToDefaultViewSetting(
+            List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes) {
+
+        ArrayList<ReportEntityFilter> defaultFilters = new ArrayList<>();
+        defaultFilters.add(new ReportEntityFilter(ReportEntityFilter.DATE_KEY, ReportEntityFilter.DATE_LABEL, true));
+        defaultFilters.add(new ReportEntityFilter(ReportEntityFilter.STATUS_KEY, ReportEntityFilter.STATUS_LABEL, true));
+
+        if (programTrackedEntityAttributes != null && !programTrackedEntityAttributes.isEmpty()) {
+            for (ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes) {
+                TrackedEntityAttribute trackedEntityAttribute = programTrackedEntityAttribute.trackedEntityAttribute();
+                String trackedEntityAttributeName = trackedEntityAttribute.displayName();
+                boolean defaultViewSetting = programTrackedEntityAttribute.displayInList();
+                defaultFilters.add(new ReportEntityFilter(trackedEntityAttribute.uid(), trackedEntityAttributeName, defaultViewSetting));
+            }
+        }
+        return defaultFilters;
+    }
+
     private ArrayList<ReportEntityFilter> mapDataElementNameToDefaultViewSetting(
             List<ProgramStageDataElement> dataElements) {
 
@@ -526,6 +681,20 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         return defaultFilters;
     }
 
+    private Map<String, String> mapTrackedEntityAttributeToValue(List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
+
+        Map<String, String> dataElementToValueMap = new HashMap<>();
+
+        if (trackedEntityAttributeValues != null && !trackedEntityAttributeValues.isEmpty()) {
+            for (TrackedEntityAttributeValue trackedEntityAttributeValue : trackedEntityAttributeValues) {
+
+                String value = !isEmpty(trackedEntityAttributeValue.value()) ? trackedEntityAttributeValue.value() : "";
+                dataElementToValueMap.put(trackedEntityAttributeValue.trackedEntityAttribute(), value);
+            }
+        }
+        return dataElementToValueMap;
+    }
+
     private Map<String, String> mapDataElementToValue(List<TrackedEntityDataValue> dataValues) {
 
         Map<String, String> dataElementToValueMap = new HashMap<>();
@@ -539,6 +708,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         }
         return dataElementToValueMap;
     }
+
+
 
     /*
      * Goes through given organisation units and programs and builds Picker tree
@@ -637,5 +808,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     private Observable<Event> getEvent(String uid) {
         return Observable.just(eventInteractor.store().query(uid));
+    }
+
+    private Observable<List<Enrollment>> listEnrollmentsByOrgUnitProgram(String organisationUnitUid, String programUid) {
+        return Observable.just(enrollmentInteractor.store().query(organisationUnitUid, programUid));
     }
 }

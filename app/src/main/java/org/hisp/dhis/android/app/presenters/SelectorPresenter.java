@@ -42,7 +42,7 @@ public interface SelectorPresenter extends Presenter {
 
     void listPickers();
 
-    void listEvents(String organisationUnitId, String programId);
+    void listItems(String organisationUnitId, String programId);
 
     void createEvent(String organisationUnitId, String programId);
 
@@ -52,5 +52,5 @@ public interface SelectorPresenter extends Presenter {
 
     void handleError(final Throwable throwable);
 
-    void setReportEntityDataElementFilters(String programId, ArrayList<ReportEntityFilter> filters);
+    void setReportEntityDataElementFilters(String programId, List<ReportEntityFilter> filters);
 }

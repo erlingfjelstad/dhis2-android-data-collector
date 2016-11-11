@@ -332,11 +332,6 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     @Override
     public void setReportEntityLabelFilters(List<ReportEntityFilter> filters) {
-
-    }
-
-    @Override
-    public void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters) {
         reportEntityAdapter.notifyFiltersChanged(filters);
     }
 
@@ -491,7 +486,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     private void onReportEntityClicked(ReportEntity reportEntity) {
         // tofl
-        //FormSectionActivity.navigateToExistingEvent(getActivity(), reportEntity.getId());
+        FormSectionActivity.navigateToExistingEvent(getActivity(), reportEntity.getId());
     }
 
     @Override
@@ -512,7 +507,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     private void showFilterDialog() {
         if (filterDialog == null || !filterDialog.isShowing()) {
 
-            final ArrayList<ReportEntityFilter> filters = reportEntityAdapter.getReportEntityFilters();
+            final List<ReportEntityFilter> filters = reportEntityAdapter.getReportEntityFilters();
             Collections.sort(filters);
             final String[] filterKeys = new String[filters.size()];
             final String[] filterNames = new String[filters.size()];
@@ -575,7 +570,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
             showCreateEventButton();
 
             // load existing eventsz
-            selectorPresenter.listEvents(getOrganisationUnitUid(pickers), getProgramUid(pickers));
+            selectorPresenter.listItems(getOrganisationUnitUid(pickers), getProgramUid(pickers));
         } else {
             hideCreateEventButton();
             //This is uncommented, because it introduces buggy behaviour to the bottomSheet.

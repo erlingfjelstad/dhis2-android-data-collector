@@ -39,7 +39,6 @@ import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
-import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractorImpl;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
@@ -219,7 +218,7 @@ public final class UserModule {
     @Provides
     @PerUser
     public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
-        return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.trackedEntityDataValues(),
-                sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
+        return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.enrollments(), sdkInstance.trackedEntityDataValues(),
+                sdkInstance.trackedEntityAttributeValues(), sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
     }
 }
