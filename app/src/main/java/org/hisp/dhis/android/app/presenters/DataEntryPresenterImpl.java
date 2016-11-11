@@ -8,6 +8,7 @@ import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.option.Option;
@@ -571,7 +572,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                         "assigned to FormEntity upfront");
             }
 
-            dataValue.toBuilder().value(value).build();
+            dataValue.toBuilder().value(value).state(State.TO_POST).build();
 
             logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
 
@@ -587,8 +588,10 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                         "assigned to FormEntity upfront");
             }
 
-            dataValue.toBuilder().value(value).build();
-
+            TrackedEntityDataValue.Builder trackedEntityDataValueBuilder = dataValue.toBuilder();
+            trackedEntityDataValueBuilder.state(State.TO_POST);
+            trackedEntityDataValueBuilder.value(value);
+            dataValue = trackedEntityDataValueBuilder.build();
             logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
 
             return dataValue;
