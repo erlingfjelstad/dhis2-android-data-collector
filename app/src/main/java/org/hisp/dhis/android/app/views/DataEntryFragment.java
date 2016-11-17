@@ -28,6 +28,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 public class DataEntryFragment extends BaseFragment implements DataEntryView {
     private static final String ARG_EVENT_ID = "arg:eventId";
+    private static final String ARG_ITEM_ID = "arg:itemId";
     private static final String ARG_PROGRAM_ID = "arg:programId";
     private static final String ARG_PROGRAM_STAGE_ID = "arg:programStageId";
     private static final String ARG_PROGRAM_STAGE_SECTION_ID = "arg:programStageSectionId";
@@ -53,6 +54,20 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         return dataEntryFragment;
     }
 
+    public static DataEntryFragment newInstanceForItem( @NonNull String itemId,
+                                                        @NonNull String programId,
+                                                        @NonNull String programStageId) {
+        Bundle arguments = new Bundle();
+        arguments.putString(ARG_ITEM_ID, itemId);
+        arguments.putString(ARG_PROGRAM_ID, programId);
+        arguments.putString(ARG_PROGRAM_STAGE_ID, programStageId);
+
+        DataEntryFragment dataEntryFragment = new DataEntryFragment();
+        dataEntryFragment.setArguments(arguments);
+
+        return dataEntryFragment;
+    }
+
     public static DataEntryFragment newInstanceForSection(@NonNull String eventId,
                                                           @NonNull String programId,
                                                           @NonNull String programStageId,
@@ -67,6 +82,10 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         dataEntryFragment.setArguments(arguments);
 
         return dataEntryFragment;
+    }
+
+    private String getItemId() {
+        return getArguments().getString(ARG_ITEM_ID, null);
     }
 
     private String getEventId() {
@@ -140,6 +159,10 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         else if (!isEmpty(getProgramStageId())) {
             // Pass event id into presenter
             dataEntryPresenter.createDataEntryFormStage(getEventId(), getProgramId(), getProgramStageId());
+        }
+        else {
+            //TEMPORARY ELSE CLAUSE:
+            dataEntryPresenter.createDataEntryFormSingleSection(getItemId(), getProgramId());
         }
 
 

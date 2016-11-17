@@ -1,8 +1,10 @@
 package org.hisp.dhis.android.app.model;
 
+import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
+import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramRuleActionType;
@@ -37,6 +39,7 @@ public class RxRulesEngine {
     private final UserInteractor currentUserInteractor;
     private final EventInteractor eventInteractor;
     private final ProgramInteractor programInteractor;
+    private final EnrollmentInteractor enrollmentInteractor;
 
     private Event currentEvent;
     private final Map<String, Event> eventsMap;
@@ -51,13 +54,47 @@ public class RxRulesEngine {
 
     public RxRulesEngine(UserInteractor currentUserInteractor,
                          ProgramInteractor programInteractor,
-                         EventInteractor eventInteractor, Logger logger) {
+                         EventInteractor eventInteractor, EnrollmentInteractor enrollmentInteractor, Logger logger) {
         this.currentUserInteractor = currentUserInteractor;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
+        this.enrollmentInteractor = enrollmentInteractor;
         this.eventsMap = new HashMap<>();
         this.logger = logger;
         this.subscription = new CompositeSubscription();
+    }
+
+    public Observable<Boolean> initForEnrollment(final String enrollmentUid) {
+        return Observable.create(new Observable.OnSubscribe<Enrollment>() {
+            @Override
+            public void call(Subscriber<? super Enrollment> subscriber) {
+                try {
+                    subscriber.onNext(enrollmentInteractor.store().query(enrollmentUid));
+                }
+                catch (Exception e) {
+                    subscriber.onError(e);
+                }
+                subscriber.onCompleted();
+            }
+        }).switchMap(new Func1<Enrollment, Observable<? extends Boolean>>() {
+            @Override
+            public Observable<? extends Boolean> call(Enrollment enrollment) {
+                final String organisationUnitUid = enrollment.organisationUnit();
+                final String programUid = enrollment.program();
+
+                return Observable.zip(loadRulesEngine(programUid), queryEventsForEnrollment(enrollment.uid()), new Func2<RuleEngine, List<Event>, Boolean>() {
+                    @Override
+                    public Boolean call(RuleEngine engine, List<Event> events) {
+                        ruleEngine = engine;
+
+//                        eventsMap.putAll(toEventMap(events));
+                        //TODO: DO NOTHING FOR NOW.
+                        return true;
+                    }
+                });
+
+            }
+        });
     }
 
     public Observable<Boolean> init(final String eventUid) {
@@ -105,6 +142,10 @@ public class RxRulesEngine {
 
     private Observable<List<Event>> queryEvents(String organisationUnitUid, String programUid) {
         return Observable.just(eventInteractor.store().query(organisationUnitUid, programUid));
+    }
+
+    private Observable<List<Event>> queryEventsForEnrollment(String enrollmentUid) {
+        return Observable.just(eventInteractor.store().queryEventsForEnrollment(enrollmentUid));
     }
 
     public void notifyDataSetChanged() {

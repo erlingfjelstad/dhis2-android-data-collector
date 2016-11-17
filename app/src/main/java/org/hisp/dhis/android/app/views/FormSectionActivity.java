@@ -43,12 +43,14 @@ import org.hisp.dhis.android.app.FormComponent;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
+import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
+import org.hisp.dhis.client.sdk.utils.LocaleUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,9 +70,12 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 // TODO check if configuration changes are handled properly
 public class FormSectionActivity extends AppCompatActivity implements FormSectionView {
     private static final String ARG_EVENT_UID = "arg:eventUid";
+    private static final String ARG_ITEM_UID = "arg:itemUid";
     private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String ARG_PROGRAM_STAGE_UID = "arg:programStageUid";
     private static final String ARG_IS_EVENT_NEW = "arg:isEventNew";
+    private static final String ARG_IS_ITEM_NEW = "arg:isItemNew";
+    private static final String ARG_CONTEXT_TYPE = "arg:contextType";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final int LOCATION_REQUEST_CODE = 42;
     private static final String TAG = FormSectionActivity.class.getSimpleName();
@@ -99,15 +104,26 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     FilterableDialogFragment sectionDialogFragment;
     AlertDialog alertDialog;
 
-    public static void navigateToNewEvent(Activity activity, String eventUid, String programUid, String programStageUid) {
-        navigateTo(activity, eventUid, programUid, programStageUid, true);
+    public static void navigateToNewItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType) {
+        navigateToItem(activity, itemUid, programUid, contextType, true);
     }
 
-    public static void navigateToExistingEvent(Activity activity, String eventUid) {
-        navigateTo(activity, eventUid, null, null, false);
+    public static void navigateToExistingItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType) {
+        navigateToItem(activity, itemUid, programUid, contextType, false);
     }
 
-    private static void navigateTo(Activity activity, String eventUid, String programUid, String programStageUid, boolean isEventNew) {
+    private static void navigateToItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType, boolean isItemNew) {
+        isNull(activity, "activity must not be null");
+
+        Intent intent = new Intent(activity, FormSectionActivity.class);
+        intent.putExtra(ARG_ITEM_UID, itemUid);
+        intent.putExtra(ARG_PROGRAM_UID, programUid);
+        intent.putExtra(ARG_CONTEXT_TYPE, contextType.toString());
+        intent.putExtra(ARG_IS_ITEM_NEW, isItemNew);
+        activity.startActivity(intent);
+    }
+
+    private static void navigateToEvent(Activity activity, String eventUid, String programUid, String programStageUid, boolean isEventNew) {
         isNull(activity, "activity must not be null");
 
         Intent intent = new Intent(activity, FormSectionActivity.class);
@@ -118,13 +134,13 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         activity.startActivity(intent);
     }
 
-    private String getEventUid() {
+    private String getItemUid() {
         if (getIntent().getExtras() == null || getIntent().getExtras()
-                .getString(ARG_EVENT_UID, null) == null) {
-            throw new IllegalArgumentException("You must pass event uid in intent extras");
+                .getString(ARG_ITEM_UID, null) == null) {
+            throw new IllegalArgumentException("You must pass item uid in intent extras");
         }
 
-        return getIntent().getExtras().getString(ARG_EVENT_UID, null);
+        return getIntent().getExtras().getString(ARG_ITEM_UID, null);
     }
 
     private String getProgramUid() {
@@ -136,6 +152,17 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         return getIntent().getExtras().getString(ARG_PROGRAM_UID, null);
     }
 
+    private String getContextType() {
+        if (getIntent().getExtras() == null || getIntent().getExtras()
+                .getString(ARG_CONTEXT_TYPE, null) == null) {
+            throw new IllegalArgumentException("You must pass form section context type in intent extras");
+        }
+
+        return getIntent().getExtras().getString(ARG_CONTEXT_TYPE, null);
+    }
+
+
+    //TODO deprecated
     private String getProgramStageUid() {
         if (getIntent().getExtras() == null || getIntent().getExtras()
                 .getString(ARG_PROGRAM_STAGE_UID, null) == null) {
@@ -144,7 +171,8 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         return getIntent().getExtras().getString(ARG_PROGRAM_STAGE_UID, null);
     }
 
-    private boolean isEventNew() {
+
+    private boolean isItemNew() {
         return getIntent().getExtras().getBoolean(ARG_IS_EVENT_NEW, false);
     }
 
@@ -179,7 +207,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
 
         // if it is first time when FormSectionsActivity is
         // instantiated, we need to show DatePickerDialog
-        if (savedInstanceState == null && isEventNew()) {
+        if (savedInstanceState == null && isItemNew()) {
             showDatePickerDialog();
         }
 
@@ -187,7 +215,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         formComponent.inject(this);
 
         // start building the form
-        formSectionPresenter.createDataEntryForm(getEventUid());
+        formSectionPresenter.createDataEntryForm(getItemUid(), getProgramUid());
 
         setupLocationPermissions();
     }
@@ -300,7 +328,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     public void showFormDefaultSection(String formSectionId) {
         FormSingleSectionAdapter viewPagerAdapter =
                 new FormSingleSectionAdapter(getSupportFragmentManager());
-        viewPagerAdapter.swapData(getEventUid(), getProgramUid(), getProgramStageUid(), formSectionId);
+        viewPagerAdapter.swapData(getItemUid(), getProgramUid(), getProgramStageUid(), formSectionId);
 
         // in order not to loose state of ViewPager, first we
         // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
@@ -320,7 +348,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     public void showFormSections(List<FormSection> formSections) {
         FormSectionsAdapter viewPagerAdapter =
                 new FormSectionsAdapter(getSupportFragmentManager());
-        viewPagerAdapter.swapData(getEventUid(), getProgramUid(), getProgramStageUid(), formSections);
+        viewPagerAdapter.swapData(getItemUid(), getProgramUid(), getProgramStageUid(), formSections);
 
         // in order not to loose state of ViewPager, first we
         // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
@@ -348,7 +376,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         textViewReportDate.setHint(dateLabel);
 
         if (!isEmpty(value)) {
-            textViewReportDate.setText(String.format(Locale.getDefault(),
+            textViewReportDate.setText(String.format(LocaleUtils.getLocale(),
                     "%s: %s", dateLabel, value));
         }
     }
@@ -373,6 +401,15 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         if (fabComplete != null && eventStatus != null) {
             fabComplete.setVisibility(View.VISIBLE);
             fabComplete.setActivated(EventStatus.COMPLETED.equals(eventStatus));
+        }
+    }
+
+    @Override
+    public void showEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+        if (fabComplete != null && enrollmentStatus != null) {
+            fabComplete.setVisibility(View.VISIBLE);
+            fabComplete.setImageResource(R.drawable.ic_add);
+            fabComplete.setActivated(EnrollmentStatus.COMPLETED.equals(enrollmentStatus));
         }
     }
 
@@ -509,7 +546,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 boolean isCompleted = fabComplete.isActivated();
                 fabComplete.setActivated(!isCompleted);
 
-                if (isCompleted) {
+                if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
                     incompleteEvent();
 
                     Snackbar.make(coordinatorLayout, getString(R.string.incomplete), Snackbar.LENGTH_LONG)
@@ -521,7 +558,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                                 }
                             })
                             .show();
-                } else {
+                } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
                     completeEvent();
                     Snackbar.make(coordinatorLayout, getString(R.string.complete), Snackbar.LENGTH_LONG)
                             .setAction(getString(R.string.undo), new View.OnClickListener() {
@@ -532,17 +569,21 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                                 }
                             })
                             .show();
+                } else if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+
+                } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+
                 }
             }
         });
     }
 
     private void incompleteEvent() {
-        formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.ACTIVE);
+        formSectionPresenter.saveEventStatus(getItemUid(), EventStatus.ACTIVE);
     }
 
     private void completeEvent() {
-        formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.COMPLETED);
+        formSectionPresenter.saveEventStatus(getItemUid(), EventStatus.COMPLETED);
     }
 
     private class OnSearchSectionsClickListener implements OnPickerItemClickListener {
@@ -574,15 +615,16 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 calendar.set(Calendar.YEAR, year);
                 calendar.set(Calendar.MONTH, monthOfYear);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, LocaleUtils.getLocale());
                 String stringDate = simpleDateFormat
                         .format(calendar.getTime());
-                String newValue = String.format(Locale.getDefault(), "%s: %s",
+                String newValue = String.format(LocaleUtils.getLocale(), "%s: %s",
                         getString(R.string.report_date), stringDate);
                 textViewReportDate.setText(newValue);
 
                 Date currentDate = Calendar.getInstance().getTime();
                 Date selectedDate = calendar.getTime();
+
 
                 /*
                 * in case when user selected today's date, we need to know about time as well.
@@ -595,8 +637,11 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 } else {
                     date = selectedDate;
                 }
-
-                formSectionPresenter.saveEventDate(getEventUid(), date);
+                if (FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
+                    formSectionPresenter.saveEventDate(getItemUid(), date);
+                } else if (FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+                    formSectionPresenter.saveEnrollmentDate(getItemUid(), date);
+                }
             }
         };
 
@@ -616,7 +661,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     private static class FormSingleSectionAdapter extends FragmentStatePagerAdapter {
         private static final int DEFAULT_STAGE_COUNT = 1;
         private static final int DEFAULT_STAGE_POSITION = 0;
-        private String eventId;
+        private String itemId;
         private String programId;
         private String programStageId;
         private String formSectionId;
@@ -628,7 +673,8 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         @Override
         public Fragment getItem(int position) {
             if (DEFAULT_STAGE_POSITION == position && !isEmpty(formSectionId)) {
-                return DataEntryFragment.newInstanceForStage(eventId, programId, programStageId);
+                return DataEntryFragment.newInstanceForItem(itemId, programId, programStageId);
+//                return DataEntryFragment.newInstanceForStage(itemId, programId, programStageId);
             }
 
             return null;
@@ -639,8 +685,8 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
             return isEmpty(formSectionId) ? 0 : DEFAULT_STAGE_COUNT;
         }
 
-        public void swapData(String eventId, String programId, String programStageId, String formSectionId) {
-            this.eventId = eventId;
+        public void swapData(String itemId, String programId, String programStageId, String formSectionId) {
+            this.itemId = itemId;
             this.programId = programId;
             this.programStageId = programStageId;
             this.formSectionId = formSectionId;

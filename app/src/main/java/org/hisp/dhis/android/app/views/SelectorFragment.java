@@ -74,7 +74,6 @@ import org.hisp.dhis.client.sdk.ui.views.DividerDecoration;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -308,9 +307,9 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivity(String eventUid, String programUid, String programStageUid) {
-        logger.d(TAG, String.format("Event with uid=%s is created", eventUid));
-        FormSectionActivity.navigateToNewEvent(getActivity(), eventUid, programUid, programStageUid);
+    public void navigateToFormSectionActivity(String itemUid, String programUid, FormSectionContextType contextType) {
+        logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
+        FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, contextType);
     }
 
     @Override
@@ -486,7 +485,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     private void onReportEntityClicked(ReportEntity reportEntity) {
         // tofl
-        FormSectionActivity.navigateToExistingEvent(getActivity(), reportEntity.getId());
+        FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getProgramUid(), FormSectionContextType.REPORT);
     }
 
     @Override
@@ -762,7 +761,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
             String programUid = getProgramUid(pickers);
 
             if (orgUnitUid != null && programUid != null) {
-                selectorPresenter.createEvent(orgUnitUid, programUid);
+                selectorPresenter.createItem(orgUnitUid, programUid);
             }
         }
 

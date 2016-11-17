@@ -29,6 +29,7 @@
 package org.hisp.dhis.android.app.presenters;
 
 import org.hisp.dhis.android.app.model.SyncWrapper;
+import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.SelectorView;
 import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
@@ -38,9 +39,11 @@ import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
+import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
@@ -52,6 +55,7 @@ import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
+import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.AppError;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
@@ -92,6 +96,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final EnrollmentInteractor enrollmentInteractor;
+    private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
     private final TrackedEntityDataValueInteractor trackedEntityDataValueInteractor;
     private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
     private final SessionPreferences sessionPreferences;
@@ -108,8 +113,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     public SelectorPresenterImpl(OrganisationUnitInteractor interactor,
                                  ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
-                                 EnrollmentInteractor enrollmentInteractor, TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
-                                 TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor, SessionPreferences sessionPreferences,
+                                 EnrollmentInteractor enrollmentInteractor,
+                                 TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
+                                 TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
+                                 TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
+                                 SessionPreferences sessionPreferences,
                                  SyncWrapper syncWrapper,
                                  ApiExceptionHandler apiExceptionHandler,
                                  Logger logger) {
@@ -117,6 +125,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.enrollmentInteractor = enrollmentInteractor;
+        this.trackedEntityInstanceInteractor = trackedEntityInstanceInteractor;
         this.trackedEntityDataValueInteractor = trackedEntityDataValueInteractor;
         this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
         this.sessionPreferences = sessionPreferences;
@@ -385,8 +394,82 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
 
     @Override
-    public void createEvent(final String orgUnitId, final String programId) {
+    public void createItem(final String organisationUnitId, final String programId) {
+        Program program = getProgram(programId).toBlocking().first();
+        if(program != null && program.programType() != null) {
+            switch (program.programType()) {
+                case WITH_REGISTRATION:
+                    createEnrollment(organisationUnitId, programId);
+                    break;
+                case WITHOUT_REGISTRATION:
+                    createEvent(organisationUnitId, programId);
+                    break;
+                default:
+                    throw new IllegalArgumentException("ProgramType not supported");
+            }
+        }
+    }
 
+    private void createEnrollment(final String organisationUnitId, final String programId) {
+        subscription.add(getProgram(programId)
+                .map(new Func1<Program, TrackedEntityInstance>() {
+                    @Override
+                    public TrackedEntityInstance call(Program program) {
+                        if (program != null && ProgramType.WITH_REGISTRATION.equals(program.programType())) {
+                            TrackedEntityInstance.Builder builder = TrackedEntityInstance.builder();
+                            builder.uid(CodeGenerator.generateCode())
+                                    .created(Calendar.getInstance().getTime())
+                                    .organisationUnit(organisationUnitId)
+                                    .state(State.TO_POST);
+                            return builder.build();
+                        }
+                        return null;
+                    }
+                })
+                .map(new Func1<TrackedEntityInstance, Enrollment>() {
+                    @Override
+                    public Enrollment call(TrackedEntityInstance trackedEntityInstance) {
+                        if (trackedEntityInstance == null) {
+                            throw new IllegalArgumentException("Failed to create tracked entity instance");
+                        }
+
+                        Enrollment.Builder builder = Enrollment.builder();
+                        builder.uid(CodeGenerator.generateCode())
+                                .created(Calendar.getInstance().getTime())
+                                .state(State.TO_POST)
+                                .organisationUnit(organisationUnitId)
+                                .program(programId)
+                                .enrollmentStatus(EnrollmentStatus.ACTIVE)
+                                .followUp(false)
+                                .dateOfEnrollment(Calendar.getInstance().getTime())
+                                .trackedEntityInstance(trackedEntityInstance.uid());
+
+                        Enrollment enrollment = builder.build();
+
+                        trackedEntityInstanceInteractor.store().save(trackedEntityInstance);
+                        enrollmentInteractor.store().save(enrollment);
+                        return enrollment;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Enrollment>() {
+                    @Override
+                    public void call(Enrollment enrollment) {
+                        if (selectorView != null) {
+                            selectorView.navigateToFormSectionActivity(enrollment.uid(), enrollment.program(), FormSectionContextType.REGISTRATION);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Failed creating enrollment", throwable);
+                    }
+                })
+        );
+    }
+
+    private void createEvent(final String orgUnitId, final String programId) {
         subscription.add(getProgram(programId)
                         .map(new Func1<Program, ProgramStage>() {
                             @Override
@@ -435,7 +518,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             @Override
                             public void call(Event event) {
                                 if (selectorView != null) {
-                                    selectorView.navigateToFormSectionActivity(event.uid(), event.program(), event.programStage());
+                                    selectorView.navigateToFormSectionActivity(event.uid(), event.program(), FormSectionContextType.REPORT);
                                 }
                             }
                         }, new Action1<Throwable>() {
@@ -558,7 +641,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 }
             }
 
-            List<TrackedEntityAttributeValue> trackedEntityAttributeValues = trackedEntityAttributeValueInteractor.store().query(enrollment.uid());
+            List<TrackedEntityAttributeValue> trackedEntityAttributeValues = trackedEntityAttributeValueInteractor.store().query(enrollment.trackedEntityInstance());
 
             Map<String, String> trackedEntityAttributeToValueMap =
                     mapTrackedEntityAttributeToValue(trackedEntityAttributeValues);
@@ -689,7 +772,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             for (TrackedEntityAttributeValue trackedEntityAttributeValue : trackedEntityAttributeValues) {
 
                 String value = !isEmpty(trackedEntityAttributeValue.value()) ? trackedEntityAttributeValue.value() : "";
-                dataElementToValueMap.put(trackedEntityAttributeValue.trackedEntityAttribute(), value);
+                dataElementToValueMap.put(trackedEntityAttributeValue.trackedEntityAttributeUid(), value);
             }
         }
         return dataElementToValueMap;
@@ -708,7 +791,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         }
         return dataElementToValueMap;
     }
-
 
 
     /*

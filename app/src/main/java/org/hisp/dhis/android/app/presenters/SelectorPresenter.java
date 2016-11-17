@@ -44,7 +44,7 @@ public interface SelectorPresenter extends Presenter {
 
     void listItems(String organisationUnitId, String programId);
 
-    void createEvent(String organisationUnitId, String programId);
+    void createItem(String organisationUnitId, String programId);
 
     void deleteEvent(ReportEntity reportEntity);
 

@@ -7,10 +7,13 @@ import org.hisp.dhis.android.app.presenters.DataEntryPresenter;
 import org.hisp.dhis.android.app.presenters.DataEntryPresenterImpl;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenterImpl;
+import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
@@ -29,11 +32,12 @@ public class FormModule {
     public RxRulesEngine providesRuleEngine(
             @Nullable UserInteractor currentUserInteractor,
             @Nullable ProgramInteractor programInteractor,
-            @Nullable EventInteractor eventInteractor, Logger logger) {
+            @Nullable EventInteractor eventInteractor,
+            @Nullable EnrollmentInteractor enrollmentInteractor, Logger logger) {
         return new RxRulesEngine(
                 currentUserInteractor,
                 programInteractor,
-                eventInteractor, logger);
+                eventInteractor, enrollmentInteractor, logger);
     }
 
     @Provides
@@ -41,9 +45,10 @@ public class FormModule {
     public FormSectionPresenter providesFormSectionPresenter(
             @Nullable ProgramInteractor programInteractor,
             @Nullable EventInteractor eventInteractor,
+            @Nullable EnrollmentInteractor enrollmentInteractor,
             RxRulesEngine rxRulesEngine, LocationProvider locationProvider, Logger logger) {
         return new FormSectionPresenterImpl(programInteractor, eventInteractor,
-                rxRulesEngine, locationProvider, logger);
+                enrollmentInteractor, rxRulesEngine, locationProvider, logger);
     }
 
     @Provides
@@ -52,10 +57,15 @@ public class FormModule {
             @Nullable ProgramInteractor programInteractor,
             @Nullable OptionSetInteractor optionSetInteractor,
             @Nullable EventInteractor eventInteractor,
+            @Nullable EnrollmentInteractor enrollmentInteractor,
+            @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
             @Nullable TrackedEntityDataValueInteractor dataValueInteractor,
+            @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
             RxRulesEngine rxRulesEngine, Logger logger) {
         return new DataEntryPresenterImpl(currentUserInteractor,
                 programInteractor, optionSetInteractor,
-                eventInteractor, dataValueInteractor, rxRulesEngine, logger);
+                eventInteractor, enrollmentInteractor,
+                trackedEntityInstanceInteractor,
+                dataValueInteractor, trackedEntityAttributeValueInteractor, rxRulesEngine, logger);
     }
 }
