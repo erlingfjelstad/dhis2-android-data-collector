@@ -447,7 +447,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
             @Override
             public void onDeleteReportEntity(ReportEntity reportEntity) {
                 logger.d(TAG, "ReportEntity id to be deleted: " + reportEntity.getId());
-                selectorPresenter.deleteEvent(reportEntity);
+                selectorPresenter.deleteItem(reportEntity, getProgramUid());
 
                 if (pickerAdapter != null) {
                     updateLabels(pickerAdapter.getData());

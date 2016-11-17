@@ -531,7 +531,23 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     @Override
-    public void deleteEvent(final ReportEntity reportEntity) {
+    public void deleteItem(final ReportEntity reportEntity, String programId) {
+        Program program = getProgram(programId).toBlocking().first();
+        if(program != null && program.programType() != null) {
+            switch (program.programType()) {
+                case WITH_REGISTRATION:
+                    deleteEnrollment(reportEntity);
+                    break;
+                case WITHOUT_REGISTRATION:
+                    deleteEvent(reportEntity);
+                    break;
+                default:
+                    throw new IllegalArgumentException("ProgramType not supported");
+            }
+        }
+    }
+
+    private void deleteEvent(final ReportEntity reportEntity) {
         subscription.add(getEvent(reportEntity.getId())
                 .switchMap(new Func1<Event, Observable<Boolean>>() {
                     @Override
@@ -554,6 +570,36 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Throwable throwable) {
                         logger.e(TAG, "Error deleting event: " + reportEntity, throwable);
+                        if (selectorView != null) {
+                            selectorView.onReportEntityDeletionError(reportEntity);
+                        }
+                    }
+                }));
+    }
+
+    private void deleteEnrollment(final ReportEntity reportEntity) {
+        subscription.add(getEnrollment(reportEntity.getId())
+                .switchMap(new Func1<Enrollment, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(Enrollment enrollment) {
+                        int eventDeleted = enrollmentInteractor.store().delete(enrollment);
+
+                        if (eventDeleted > 0) {
+                            return Observable.just(true);
+                        } else return Observable.just(false);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        logger.d(TAG, "Enrollment deleted");
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Error deleting enrollment: " + reportEntity, throwable);
                         if (selectorView != null) {
                             selectorView.onReportEntityDeletionError(reportEntity);
                         }
@@ -890,6 +936,10 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     private Observable<Event> getEvent(String uid) {
         return Observable.just(eventInteractor.store().query(uid));
+    }
+
+    private Observable<Enrollment> getEnrollment(String uid) {
+        return Observable.just(enrollmentInteractor.store().query(uid));
     }
 
     private Observable<List<Enrollment>> listEnrollmentsByOrgUnitProgram(String organisationUnitUid, String programUid) {

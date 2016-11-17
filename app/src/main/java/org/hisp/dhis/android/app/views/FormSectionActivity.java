@@ -619,7 +619,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 String stringDate = simpleDateFormat
                         .format(calendar.getTime());
                 String newValue = String.format(LocaleUtils.getLocale(), "%s: %s",
-                        getString(R.string.report_date), stringDate);
+                        textViewReportDate.getHint(), stringDate);
                 textViewReportDate.setText(newValue);
 
                 Date currentDate = Calendar.getInstance().getTime();
