@@ -64,6 +64,7 @@ import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.CodeGenerator;
+import org.hisp.dhis.client.sdk.utils.DateUtils;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.io.IOException;
@@ -396,7 +397,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     @Override
     public void createItem(final String organisationUnitId, final String programId) {
         Program program = getProgram(programId).toBlocking().first();
-        if(program != null && program.programType() != null) {
+        if (program != null && program.programType() != null) {
             switch (program.programType()) {
                 case WITH_REGISTRATION:
                     createEnrollment(organisationUnitId, programId);
@@ -426,9 +427,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         return null;
                     }
                 })
-                .map(new Func1<TrackedEntityInstance, Enrollment>() {
+                .zipWith(getProgram(programId), new Func2<TrackedEntityInstance, Program, Enrollment>() {
                     @Override
-                    public Enrollment call(TrackedEntityInstance trackedEntityInstance) {
+                    public Enrollment call(TrackedEntityInstance trackedEntityInstance, Program program) {
                         if (trackedEntityInstance == null) {
                             throw new IllegalArgumentException("Failed to create tracked entity instance");
                         }
@@ -445,6 +446,33 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                 .trackedEntityInstance(trackedEntityInstance.uid());
 
                         Enrollment enrollment = builder.build();
+
+                        List<Event> eventsForEnrollment = new ArrayList<>();
+
+                        if (program.programStages() != null && !program.programStages().isEmpty()) {
+                            for (ProgramStage programStage : program.programStages()) {
+                                if (programStage.autoGenerateEvent() != null && programStage.autoGenerateEvent()) {
+                                    Event.Builder eventBuilder = Event.builder();
+
+                                    eventBuilder.uid(CodeGenerator.generateCode());
+                                    eventBuilder.created(Calendar.getInstance().getTime());
+                                    eventBuilder.state(State.TO_POST);
+                                    eventBuilder.program(enrollment.program());
+                                    eventBuilder.programStage(programStage.uid());
+                                    eventBuilder.enrollmentUid(enrollment.uid());
+                                    eventBuilder.organisationUnit(enrollment.organisationUnit());
+                                    eventBuilder.trackedEntityInstance(enrollment.trackedEntityInstance());
+                                    eventBuilder.dueDate(DateUtils.plusDays(enrollment.dateOfEnrollment(), programStage.minDaysFromStart() != null ? programStage.minDaysFromStart() : 0));
+                                    eventBuilder.status(EventStatus.SCHEDULE);
+
+                                    eventsForEnrollment.add(eventBuilder.build());
+                                }
+                            }
+                        }
+
+                        if (!eventsForEnrollment.isEmpty()) {
+                            eventInteractor.store().save(eventsForEnrollment);
+                        }
 
                         trackedEntityInstanceInteractor.store().save(trackedEntityInstance);
                         enrollmentInteractor.store().save(enrollment);
@@ -533,7 +561,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     @Override
     public void deleteItem(final ReportEntity reportEntity, String programId) {
         Program program = getProgram(programId).toBlocking().first();
-        if(program != null && program.programType() != null) {
+        if (program != null && program.programType() != null) {
             switch (program.programType()) {
                 case WITH_REGISTRATION:
                     deleteEnrollment(reportEntity);
@@ -545,6 +573,34 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     throw new IllegalArgumentException("ProgramType not supported");
             }
         }
+    }
+
+    @Override
+    public void navigateTo(final ReportEntity reportEntity, final String programId) {
+        subscription.add(getProgram(programId).map(new Func1<Program, ProgramType>() {
+            @Override
+            public ProgramType call(Program program) {
+                return program.programType();
+            }
+        }).subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<ProgramType>() {
+            @Override
+            public void call(ProgramType programType) {
+                if (selectorView != null && programType != null) {
+                    switch (programType) {
+                        case WITH_REGISTRATION:
+                            selectorView.navigateToFormSectionActivity(reportEntity.getId(), programId, FormSectionContextType.REGISTRATION);
+                            break;
+                        case WITHOUT_REGISTRATION:
+                            selectorView.navigateToFormSectionActivity(reportEntity.getId(), programId, FormSectionContextType.REPORT);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("ProgramType not supported");
+                    }
+                }
+            }
+        }));
     }
 
     private void deleteEvent(final ReportEntity reportEntity) {

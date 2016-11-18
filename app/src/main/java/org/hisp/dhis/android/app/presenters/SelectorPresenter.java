@@ -48,6 +48,8 @@ public interface SelectorPresenter extends Presenter {
 
     void deleteItem(ReportEntity reportEntity, String programId);
 
+    void navigateTo(ReportEntity reportEntity, String programId);
+
     void onPickersSelectionsChanged(List<Picker> pickerList);
 
     void handleError(final Throwable throwable);

@@ -485,7 +485,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     private void onReportEntityClicked(ReportEntity reportEntity) {
         // tofl
-        FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getProgramUid(), FormSectionContextType.REPORT);
+        selectorPresenter.navigateTo(reportEntity, getProgramUid());
     }
 
     @Override
