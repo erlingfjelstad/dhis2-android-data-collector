@@ -6,23 +6,21 @@ import android.support.multidex.MultiDex;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 
+//import org.hisp.dhis.android.app.views.ActivityComponent;
 import org.hisp.dhis.android.app.views.HomeActivity;
 import org.hisp.dhis.client.sdk.ui.bindings.App;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.NavigationHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLoginActivity;
 
-import javax.inject.Inject;
-
 import io.fabric.sdk.android.Fabric;
 
-import static android.R.attr.accountType;
-import static org.hisp.dhis.android.app.R.string.authority;
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class SkeletonApp extends App {
     private AppComponent appComponent;
     private UserComponent userComponent;
     private FormComponent formComponent;
+    //private ActivityComponent activityComponent;
 
     @Override
     public void onCreate() {
@@ -73,6 +71,18 @@ public class SkeletonApp extends App {
         formComponent = userComponent.plus(new FormModule());
         return formComponent;
     }
+
+/*
+    public ActivityComponent createActivityComponent() {
+        isNull(userComponent, "UserComponent must not be null");
+        //TODO: ??? what is this stuff ? vlad
+        //activityComponent = userComponent.plusComponent(new ActivityModule());
+        return activityComponent;
+    }
+
+    public ActivityComponent getActivityComponent() {
+        return activityComponent;
+    }*/
 
     public FormComponent getFormComponent() {
         return formComponent;

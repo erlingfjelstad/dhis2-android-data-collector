@@ -28,8 +28,8 @@
 
 package org.hisp.dhis.android.app;
 
-import org.hisp.dhis.android.app.views.SelectorFragment;
 import org.hisp.dhis.android.app.model.SyncAdapter;
+import org.hisp.dhis.android.app.views.SelectorFragment;
 
 import dagger.Subcomponent;
 

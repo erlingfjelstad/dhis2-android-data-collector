@@ -18,4 +18,6 @@
     <string name="settings_option">Settings</string>
 
     <string name="gps_permission_denied">Location permission is denied for this app.</string>
+
+    <string name="title_activity_tei_dashboard">TeiDashboardActivity</string>
 </resources>
