@@ -5,6 +5,7 @@ import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
@@ -17,6 +18,7 @@ import org.hisp.dhis.client.sdk.utils.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,9 +153,8 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
         if (events == null || events.isEmpty()) { // preventing additional work
             return reportEntities;
         }
-        Collections.sort(events, Event.ASCENDING_DATE_COMPARATOR); // sort events by eventDate
+        Collections.sort(events, Event.DESCENDING_EVENT_DATE_COMPARATOR); // sort events by eventDate
 
-        Collections.reverse(events);
         // retrieve state map for given events
         // it is done synchronously
         //TODO: use the new sdk when out, get states from the sdk :
@@ -163,13 +164,9 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
             if (programStage.uid().equals(event.programStage())) { //if event in prog stage:
                 // syncStatus of event
                 ReportEntity.Status syncStatus;
-                // get state of event from database
-                //TODO: get the state's form the map:
-                //State state = stateMap.get(event.getId());
-                //A mock up that picks a random action for now:
-                State state = State.values()[new Random().nextInt(State.values().length - 1)];
+                // get state of event
+                State state = event.state();
 
-                //logger.d(TAG, "State action for event " + event + " is " + state.getAction());
                 switch (state) {
                     case SYNCED: {
                         syncStatus = ReportEntity.Status.SENT;
@@ -187,18 +184,42 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         syncStatus = ReportEntity.Status.ERROR;
                         break;
                     }
+                    case TO_DELETE: {
+                        continue; // If event is to delete, skip this event.
+
+                    }
                     default: {
                         throw new IllegalArgumentException(
                                 "Unsupported event state: " + state);
                     }
                 }
+
+                EventStatus eventStatus = event.status();
+                Date dateToShow;
+                switch (eventStatus){
+                    case ACTIVE:
+                        dateToShow = event.eventDate();
+                        break;
+                    case COMPLETED:
+                        dateToShow = event.eventDate();
+                        break;
+                    case SCHEDULE:
+                        dateToShow = event.dueDate();
+                        break;
+                    case SKIPPED:
+                        dateToShow = event.eventDate();
+                        break;
+
+                    default: throw new IllegalArgumentException("Unknown event status");
+                }
                 //Map<String, String> dataElementToValueMap = mapDataElementToValue(event.getDataValues());
                 Map<String, String> dataElementToValueMap = new HashMap<>();
                 SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
 
-                dataElementToValueMap.put(ReportEntityFilter.DATE_KEY, sdf.format(event.eventDate()));
+
+                dataElementToValueMap.put(ReportEntityFilter.DATE_KEY, sdf.format(dateToShow));
                 dataElementToValueMap.put(ReportEntityFilter.STATUS_KEY, event.status().toString());
-                //dataElementToValueMap.put("OrgUnit", event.getOrgUnit());
+                dataElementToValueMap.put("OrgUnit", event.organisationUnit());
                 reportEntities.add(new ReportEntity(event.uid(), syncStatus, dataElementToValueMap));
             }
         }

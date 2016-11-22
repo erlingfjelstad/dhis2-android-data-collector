@@ -470,12 +470,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             }
                         }
 
+                        trackedEntityInstanceInteractor.store().save(trackedEntityInstance);
+                        enrollmentInteractor.store().save(enrollment);
+
                         if (!eventsForEnrollment.isEmpty()) {
                             eventInteractor.store().save(eventsForEnrollment);
                         }
 
-                        trackedEntityInstanceInteractor.store().save(trackedEntityInstance);
-                        enrollmentInteractor.store().save(enrollment);
                         return enrollment;
                     }
                 })
