@@ -3,8 +3,10 @@ package org.hisp.dhis.android.app.views.dashboard;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
+import android.view.View;
 
 import org.hisp.dhis.android.app.FormComponent;
 import org.hisp.dhis.android.app.R;
@@ -25,6 +27,8 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
 
     private DrawerLayout drawerLayout;
     private String selectedUid;
+
+    private FloatingActionButton floatingActionButton;
 
 
     public static void navigateTo(Activity activity, String itemUid, String programUid) {
@@ -77,6 +81,7 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         formComponent.inject(this);
 
 //        teiDashboardPresenter.configureAppBar(getItemUid(), getProgramUid() );
+        floatingActionButton = (FloatingActionButton) findViewById(R.id.floating_action_button); //todo should perhaps be in TeiNavigationFragment to change usage depending on tabs
     }
 
     @Override
