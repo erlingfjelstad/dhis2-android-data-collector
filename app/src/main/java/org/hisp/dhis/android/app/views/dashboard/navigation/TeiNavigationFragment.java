@@ -3,6 +3,7 @@ package org.hisp.dhis.android.app.views.dashboard.navigation;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -29,6 +30,9 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     private static final String ARG_ITEM_UID = "arg:itemUid";
     private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String TAG = TeiNavigationFragment.class.getSimpleName();
+    private static final int VIEW_PAGER_ITEM_PROGRAM_STAGES = 0;
+    private static final int VIEW_PAGER_ITEM_TEI_PROFILE = 1;
+    private static final int VIEW_PAGER_ITEM_WIDGETS = 2;
 
     @Inject
     TeiNavigationPresenter teiNavigationPresenter;
@@ -85,6 +89,14 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     private void initAppBarLayout(View view) {
         firstAttribute = (FontTextView) view.findViewById(R.id.first_attribute);
         secondAttribute = (FontTextView) view.findViewById(R.id.second_attribute);
+        CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) view.findViewById(R.id.collapsingtoolbarlayout);
+        final ViewPager viewPager = (ViewPager) view.findViewById(R.id.view_pager);
+        collapsingToolbarLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewPager.setCurrentItem(VIEW_PAGER_ITEM_TEI_PROFILE, true);
+            }
+        });
     }
 
     //TODO: Fix deprecated tabLayout.setOnTabSelectedListener
@@ -159,11 +171,11 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         public Fragment getItem(int position) {
             switch (position) {
                 default:
-                case 0:
+                case VIEW_PAGER_ITEM_PROGRAM_STAGES:
                     return TeiProgramStageFragment.newInstance(getItemUid(), getProgramUid());
-                case 1:
+                case VIEW_PAGER_ITEM_TEI_PROFILE:
                     return new TeiProfileFragment();
-                case 2:
+                case VIEW_PAGER_ITEM_WIDGETS:
                     return new TeiWidgetFragment();
             }
         }
