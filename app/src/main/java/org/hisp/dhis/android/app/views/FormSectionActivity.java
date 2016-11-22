@@ -74,7 +74,6 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     private static final String ARG_ITEM_UID = "arg:itemUid";
     private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String ARG_PROGRAM_STAGE_UID = "arg:programStageUid";
-    private static final String ARG_IS_EVENT_NEW = "arg:isEventNew";
     private static final String ARG_IS_ITEM_NEW = "arg:isItemNew";
     private static final String ARG_CONTEXT_TYPE = "arg:contextType";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -124,17 +123,6 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         activity.startActivity(intent);
     }
 
-    private static void navigateToEvent(Activity activity, String eventUid, String programUid, String programStageUid, boolean isEventNew) {
-        isNull(activity, "activity must not be null");
-
-        Intent intent = new Intent(activity, FormSectionActivity.class);
-        intent.putExtra(ARG_EVENT_UID, eventUid);
-        intent.putExtra(ARG_PROGRAM_UID, programUid);
-        intent.putExtra(ARG_PROGRAM_STAGE_UID, programStageUid);
-        intent.putExtra(ARG_IS_EVENT_NEW, isEventNew);
-        activity.startActivity(intent);
-    }
-
     private String getItemUid() {
         if (getIntent().getExtras() == null || getIntent().getExtras()
                 .getString(ARG_ITEM_UID, null) == null) {
@@ -174,7 +162,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
 
 
     private boolean isItemNew() {
-        return getIntent().getExtras().getBoolean(ARG_IS_EVENT_NEW, false);
+        return getIntent().getExtras().getBoolean(ARG_IS_ITEM_NEW, false);
     }
 
     @Override

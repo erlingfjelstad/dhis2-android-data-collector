@@ -63,7 +63,9 @@ public interface SelectorView extends View {
 
     void onReportEntityDeletionError(ReportEntity failedEntity);
 
-    void navigateToFormSectionActivity(String enrollmentUid, String programUid, FormSectionContextType contextType);
+    void navigateToFormSectionActivityWithNewItem(String enrollmentUid, String programUid, FormSectionContextType contextType);
+
+    void navigateToFormSectionActivityWithExistingItem(String enrollmentUid, String programUid, FormSectionContextType contextType);
 
     String getPickerLabel(@PickerLabelId String pickerLabelId);
 
