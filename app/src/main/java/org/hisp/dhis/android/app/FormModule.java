@@ -7,6 +7,16 @@ import org.hisp.dhis.android.app.presenters.DataEntryPresenter;
 import org.hisp.dhis.android.app.presenters.DataEntryPresenterImpl;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationPresenter;
+import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStagePresenter;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStagePresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
+import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetPresenter;
+import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetPresenterImpl;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
@@ -68,4 +78,41 @@ public class FormModule {
                 trackedEntityInstanceInteractor,
                 dataValueInteractor, trackedEntityAttributeValueInteractor, rxRulesEngine, logger);
     }
+
+    //TODO: Change naming
+    @Provides
+    public TeiDashboardPresenter providesTeiDashboardPresenter(
+            @Nullable FormSectionPresenter formSectionPresenter) {
+        return new TeiDashboardPresenterImpl();
+    }
+
+    @Provides
+    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable EnrollmentInteractor enrollmentInteractor,
+                                                                 @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
+                                                                 @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
+                                                                 @Nullable ProgramInteractor programInteractor,
+                                                                 @Nullable Logger logger) {
+        return new TeiNavigationPresenterImpl(enrollmentInteractor, trackedEntityInstanceInteractor,
+                trackedEntityAttributeValueInteractor, programInteractor, logger);
+    }
+
+    @Provides
+    public TeiProgramStagePresenter providesTeiProgramStagePresenter(
+            @Nullable TeiDashboardPresenter teiDashboardPresenter,
+            @Nullable ProgramInteractor programInteractor,
+            @Nullable EventInteractor eventInteractor) {
+        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor);
+    }
+
+    @Provides
+    public TeiProfilePresenter providesTeiProfilePresenter(
+            @Nullable EnrollmentInteractor enrollmentInteractor) {
+        return new TeiProfilePresenterImpl(enrollmentInteractor);
+    }
+
+    @Provides
+    public TeiWidgetPresenter providesTeiWidgetPresenter() {
+        return new TeiWidgetPresenterImpl();
+    }
+
 }

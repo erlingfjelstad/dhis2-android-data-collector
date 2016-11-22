@@ -43,6 +43,7 @@ import org.hisp.dhis.android.app.FormComponent;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
@@ -570,9 +571,10 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                             })
                             .show();
                 } else if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+                    TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
 
                 } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
-
+                    TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
                 }
             }
         });

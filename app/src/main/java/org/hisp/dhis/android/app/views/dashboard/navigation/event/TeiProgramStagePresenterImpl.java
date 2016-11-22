@@ -1,38 +1,53 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation.event;
 
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.event.Event;
-import org.hisp.dhis.client.sdk.models.event.EventStatus;
+import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
+import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
+
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private final TeiDashboardPresenter teiDashboardPresenter;
     private TeiProgramStageView teiProgramStageView;
+    private CompositeSubscription subscription;
+    private final ProgramInteractor programInteractor;
+    private final EventInteractor eventInteractor;
 
-    public TeiProgramStagePresenterImpl(TeiDashboardPresenter teiDashboardPresenter) {
+    public TeiProgramStagePresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
+                                        ProgramInteractor programInteractor,
+                                        EventInteractor eventInteractor) {
         this.teiDashboardPresenter = teiDashboardPresenter;
+        this.programInteractor = programInteractor;
+        this.eventInteractor = eventInteractor;
     }
 
     @Override
-    public void drawProgramStages(String enrollmentUid) {
-        teiProgramStageView.drawProgramStages(generateDummyProgramStages());
+    public void drawProgramStages(String enrollmentUid, String programUid) {
+        this.generateDummyProgramStages(enrollmentUid, programUid);
     }
 
     @Override
@@ -51,63 +66,77 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
         teiProgramStageView = null;
     }
 
-    List<ExpansionPanel> generateDummyProgramStages() {
-        List<ExpansionPanel> expansionPanels = new ArrayList<>();
+    private void generateDummyProgramStages(final String enrollmentUid, final String programUid) {
+//        List<ExpansionPanel> expansionPanels = new ArrayList<>();
         //TODO: find the view holder for ReportEntities and update the icon according to the status.
         //TODO: Fix the "123"'s and so on to be the actual uid's and display the event name from the hashMap instead.
-        List<ProgramStage> programStages = new ArrayList<>();
+        final List<ProgramStage> programStages = new ArrayList<>();
         List<Event> events = new ArrayList<>();
 
-        //Fill random data \0/ :
-        // Make test ProgramStages :
-     /*
-      //???????
-      for (int i = 0; i < 6 + new Random().nextInt(20); i++) {
-            ProgramStage p = new ProgramStage();
-
-            //ProgramStage.builder() doesn't exist wtf ? How am I supposed to make programStages ?
-
-            p.setDisplayName("Program Stage " + i);
-            p.setName("Program Stage " + i);
-            p.setUId("p" + i);
-            programStages.add(p);
-            //if(new Random().nextInt(3) == 1) {
-            p.setRepeatable(true);
-            //}
-        }*/
-
-        for (int i = 0; i < 100 + new Random().nextInt(400); i++) {
-            Date d  = new Date();
-            d.setTime(TimeUnit.DAYS.convert(new Random().nextInt(66666), TimeUnit.MICROSECONDS));
-            Event e = Event.builder()
-                    .uid("Event " + i)
-                    .status(EventStatus.values()[new Random().nextInt(EventStatus.values().length)])
-                    .programStage("p" + new Random().nextInt(programStages.size()))
-                    .eventDate(d)
-                    .build();
-            events.add(e);
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+            subscription = null;
         }
-        expansionPanels = programStagesToExpansionPanel(programStages, events);
-        return expansionPanels;
-    }
 
-    List<ExpansionPanel> programStagesToExpansionPanel(List<ProgramStage> stages, List<Event> events) {
-        List<ExpansionPanel> expansionPanels = new ArrayList<>();
-
-        for (ProgramStage programStage : stages) {
-            // determine the type:
-            ExpansionPanel.Type type = ExpansionPanel.Type.ACTION_ADD;
-
-            if (!programStage.repeatable()) {
-                type = ExpansionPanel.Type.ACTION_EDIT;
+        subscription = new CompositeSubscription();
+        subscription.add(Observable.zip(getProgram(programUid), getEventsForEnrollment(enrollmentUid), new Func2<Program, List<Event>, List<ExpansionPanel>>() {
+            @Override
+            public List<ExpansionPanel> call(Program program, List<Event> events) {
+                List<ExpansionPanel> expansionPanels = new ArrayList<>();
+                if (program != null && program.programStages() != null && !program.programStages().isEmpty()) {
+                    for (ProgramStage programStage : program.programStages()) {
+                        if (programStage != null) {
+                            ExpansionPanel.Type type = ExpansionPanel.Type.ACTION_ADD;
+                            if (programStage.repeatable() != null && programStage.repeatable()) {
+                                type = ExpansionPanel.Type.ACTION_EDIT;
+                            }
+                            ExpansionPanel current = new ExpansionPanel(programStage.uid(), programStage.displayName(), type);
+                            List<Event> eventsForStage = eventInteractor.store().queryEventsForEnrollmentAndProgramStage(enrollmentUid, programStage.uid());
+                            current.setChildren(eventsToReportEntityList(programStage, eventsForStage));
+                            expansionPanels.add(current);
+                        }
+                    }
+                }
+                return expansionPanels;
             }
-            // make the Stage representation:
-            ExpansionPanel current = new ExpansionPanel(programStage.uid(), programStage.displayName(), type);
+        })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Action1<List<ExpansionPanel>>() {
+                    @Override
+                    public void call(List<ExpansionPanel> expansionPanelList) {
+                        if (teiProgramStageView != null) {
+                            teiProgramStageView.drawProgramStages(expansionPanelList);
+                        }
+                    }
+                }));
 
-            current.setChildren(eventsToReportEntityList(programStage, events));
-            expansionPanels.add(current);
-        }
-        return expansionPanels;
+//        subscription.add(Observable.zip(getProgram(programUid), getEventsForEnrollment(enrollmentUid), new Func2<Program, List<Event>, List<ProgramStage>>() {
+//            @Override
+//            public List<ProgramStage> call(Program program, List<Event> events) {
+//                List<ExpansionPanel> expansionPanels = new ArrayList<>();
+//                if(program != null && program.programStages() != null && !program.programStages().isEmpty()) {
+//                    return program.programStages();
+//                }
+//                return null;
+//            }
+//        })
+//                .forEach(new Action1<List<ProgramStage>>() {
+//                    @Override
+//                    public void call(List<ProgramStage> programStages) {
+//
+//                    }
+//                })
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeOn(Schedulers.io())
+//                .subscribe(new Action1<List<ProgramStage>>() {
+//                    @Override
+//                    public void call(List<ProgramStage> expansionPanelList) {
+//
+//                    }
+//                }));
+
+
     }
 
     /**
@@ -167,8 +196,8 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                 Map<String, String> dataElementToValueMap = new HashMap<>();
                 SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
 
-                dataElementToValueMap.put(Event.JSON_PROPERTY_EVENT_DATE, sdf.format(event.eventDate()));
-                dataElementToValueMap.put(Event.JSON_PROPERTY_STATUS, event.status().toString());
+                dataElementToValueMap.put(ReportEntityFilter.DATE_KEY, sdf.format(event.eventDate()));
+                dataElementToValueMap.put(ReportEntityFilter.STATUS_KEY, event.status().toString());
                 //dataElementToValueMap.put("OrgUnit", event.getOrgUnit());
                 reportEntities.add(new ReportEntity(event.uid(), syncStatus, dataElementToValueMap));
             }
@@ -185,5 +214,13 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
             }
         }
         return dataElementToValueMap;
+    }
+
+    private Observable<List<Event>> getEventsForEnrollment(final String enrollmentUid) {
+        return Observable.just(eventInteractor.store().queryEventsForEnrollment(enrollmentUid));
+    }
+
+    private Observable<Program> getProgram(final String programUid) {
+        return Observable.just(programInteractor.store().queryByUid(programUid));
     }
 }

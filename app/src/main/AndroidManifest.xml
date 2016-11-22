@@ -27,12 +27,8 @@
 
         <activity
             android:name=".views.dashboard.TeiDashboardActivity"
-            android:label="@string/title_activity_tei_dashboard"
-            android:parentActivityName=".views.HomeActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.hisp.dhis.android.app.views.HomeActivity" />
-        </activity>
+            android:label="@string/title_activity_tei_dashboard"/>
+
 
         <meta-data
             android:name="io.fabric.ApiKey"

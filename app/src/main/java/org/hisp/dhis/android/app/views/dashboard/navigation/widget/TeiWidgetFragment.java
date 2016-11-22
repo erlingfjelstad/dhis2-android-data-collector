@@ -37,15 +37,15 @@ public class TeiWidgetFragment extends AbsTeiNavigationSectionFragment implement
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         initViews(inflater, container);
 
-    /* TODO: Fix the injection stuff (?)
+
      try {
             ((SkeletonApp) getActivity().getApplication())
-                    .getActivityComponent().inject(this);
+                    .getFormComponent().inject(this);
         } catch (Exception e) {
             Log.e("DataEntryFragment", "Activity or Application is null. Vital resources have been killed.", e);
         }
 
-        teiWidgetPresenter.attachView(this);*/
+        teiWidgetPresenter.attachView(this);
 
         return recyclerView;
     }

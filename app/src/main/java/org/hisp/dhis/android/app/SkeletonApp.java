@@ -72,18 +72,6 @@ public class SkeletonApp extends App {
         return formComponent;
     }
 
-/*
-    public ActivityComponent createActivityComponent() {
-        isNull(userComponent, "UserComponent must not be null");
-        //TODO: ??? what is this stuff ? vlad
-        //activityComponent = userComponent.plusComponent(new ActivityModule());
-        return activityComponent;
-    }
-
-    public ActivityComponent getActivityComponent() {
-        return activityComponent;
-    }*/
-
     public FormComponent getFormComponent() {
         return formComponent;
     }

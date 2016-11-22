@@ -36,9 +36,10 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     private String selectedReportEntityUid = "";
     private ReportEntitySelection reportEntitySelection;
 
-    public static TeiProgramStageFragment newInstance(String enrollmentUid) {
+    public static TeiProgramStageFragment newInstance(String enrollmentUid, String programUid) {
         Bundle bundle = new Bundle();
         bundle.putString(ARG_ENROLLMENT_UID, enrollmentUid);
+        bundle.putString(ARG_PROGRAM_UID, programUid);
 
         TeiProgramStageFragment teiProgramStageFragment = new TeiProgramStageFragment();
         teiProgramStageFragment.setArguments(bundle);
@@ -54,15 +55,13 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_tei_navigation, container, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
-/*
-//TODO: fix injection issues
 
         try {
-            ((SkeletonApp) getActivity().getApplication()).getActivityComponent().inject(this);
+            ((SkeletonApp) getActivity().getApplication()).getFormComponent().inject(this);
         } catch (Exception e) {
             Log.e("DataEntryFragment", "Activity or Application is null. Vital resources have been killed.", e);
         }
-*/
+
 
         teiProgramStagePresenter.attachView(this);
         return recyclerView;
@@ -71,7 +70,7 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        teiProgramStagePresenter.drawProgramStages(getEnrollmentUid());
+        teiProgramStagePresenter.drawProgramStages(getEnrollmentUid(), getProgramUid());
     }
 
     @Override

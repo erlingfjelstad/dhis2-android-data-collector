@@ -1,16 +1,18 @@
 package org.hisp.dhis.android.app.views.dashboard;
 
-import org.hisp.dhis.android.app.views.dataentry.FormSectionPresenter;
+import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 
 public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
+
+    private final String TAG = this.getClass().getSimpleName();
 
     TeiDashboardView dashBoardView;
 
     FormSectionPresenter formSectionPresenter;
 
-    public TeiDashboardPresenterImpl(FormSectionPresenter formSectionPresenter) {
-        this.formSectionPresenter = formSectionPresenter;
+
+    public TeiDashboardPresenterImpl() {
     }
 
     @Override
@@ -20,8 +22,9 @@ public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
 
     @Override
     public void showDataEntryForEvent(String eventUid) {
-        formSectionPresenter.createDataEntryForm(eventUid);
+        formSectionPresenter.createDataEntryForm(eventUid, "");
     }
+
 
     @Override
     public void attachView(View view) {
@@ -32,4 +35,6 @@ public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
     public void detachView() {
         dashBoardView = null;
     }
+
+
 }

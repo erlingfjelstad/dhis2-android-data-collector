@@ -29,17 +29,17 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         initViews(inflater, container);
-/* TODO: fix injection issues:
+
 
         try {
             ((SkeletonApp) getActivity().getApplication())
-                    .getActivityComponent().inject(this);
+                    .getFormComponent().inject(this);
         } catch (Exception e) {
             Log.e("DataEntryFragment", "Activity or Application is null. Vital resources have been killed.", e);
         }
 
         teiProfilePresenter.attachView(this);
-*/
+
 
         return recyclerView;
     }
