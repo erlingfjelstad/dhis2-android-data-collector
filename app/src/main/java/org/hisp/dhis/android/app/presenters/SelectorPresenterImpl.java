@@ -485,7 +485,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Enrollment enrollment) {
                         if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivity(enrollment.uid(), enrollment.program(), FormSectionContextType.REGISTRATION);
+                            selectorView.navigateToFormSectionActivityWithNewItem(enrollment.uid(), enrollment.program(), FormSectionContextType.REGISTRATION);
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -546,7 +546,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             @Override
                             public void call(Event event) {
                                 if (selectorView != null) {
-                                    selectorView.navigateToFormSectionActivity(event.uid(), event.program(), FormSectionContextType.REPORT);
+                                    selectorView.navigateToFormSectionActivityWithNewItem(event.uid(), event.program(), FormSectionContextType.REPORT);
                                 }
                             }
                         }, new Action1<Throwable>() {
@@ -590,10 +590,10 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 if (selectorView != null && programType != null) {
                     switch (programType) {
                         case WITH_REGISTRATION:
-                            selectorView.navigateToFormSectionActivity(reportEntity.getId(), programId, FormSectionContextType.REGISTRATION);
+                            selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), programId, FormSectionContextType.REGISTRATION);
                             break;
                         case WITHOUT_REGISTRATION:
-                            selectorView.navigateToFormSectionActivity(reportEntity.getId(), programId, FormSectionContextType.REPORT);
+                            selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), programId, FormSectionContextType.REPORT);
                             break;
                         default:
                             throw new IllegalArgumentException("ProgramType not supported");

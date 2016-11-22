@@ -307,9 +307,15 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivity(String itemUid, String programUid, FormSectionContextType contextType) {
+    public void navigateToFormSectionActivityWithNewItem(String itemUid, String programUid, FormSectionContextType contextType) {
         logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
         FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, contextType);
+    }
+
+    @Override
+    public void navigateToFormSectionActivityWithExistingItem(String itemUid, String programUid, FormSectionContextType contextType) {
+        logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
+        FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, contextType);
     }
 
     @Override
