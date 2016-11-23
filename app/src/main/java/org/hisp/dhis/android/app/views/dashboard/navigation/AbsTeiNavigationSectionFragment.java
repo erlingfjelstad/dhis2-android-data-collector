@@ -13,26 +13,29 @@ import org.hisp.dhis.client.sdk.ui.fragments.BaseFragment;
  */
 
 public abstract class AbsTeiNavigationSectionFragment extends BaseFragment {
-
+    protected static final String ARG_ITEM_UID = "arg:itemUid";
+//    private static final String ARG_PROGRAM_UID = "arg:programUid";
 
     protected static final String ARG_ENROLLMENT_UID = "arg:enrollmentUid";
     protected static final String ARG_PROGRAM_UID = "arg:programUid";
     protected RecyclerView recyclerView;
 
-    protected String getEnrollmentUid() {
-        if (getArguments().getString(ARG_ENROLLMENT_UID) == null) {
-            throw new IllegalArgumentException("You must pass enrollment uid in intent extras");
+    protected String getItemUid() {
+        if (getArguments() == null || getArguments()
+                .getString(ARG_ITEM_UID, null) == null) {
+            throw new IllegalArgumentException("You must pass item uid in intent extras");
         }
 
-        return getArguments().getString(ARG_ENROLLMENT_UID);
+        return getArguments().getString(ARG_ITEM_UID, null);
     }
 
     protected String getProgramUid() {
-        if (getArguments().getString(ARG_PROGRAM_UID) == null) {
+        if (getArguments() == null || getArguments()
+                .getString(ARG_PROGRAM_UID, null) == null) {
             throw new IllegalArgumentException("You must pass program uid in intent extras");
         }
 
-        return getArguments().getString(ARG_PROGRAM_UID);
+        return getArguments().getString(ARG_PROGRAM_UID, null);
     }
 
     @Override

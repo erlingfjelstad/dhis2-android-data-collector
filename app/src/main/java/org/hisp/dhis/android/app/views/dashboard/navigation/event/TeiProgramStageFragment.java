@@ -36,9 +36,9 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     private String selectedReportEntityUid = "";
     private ReportEntitySelection reportEntitySelection;
 
-    public static TeiProgramStageFragment newInstance(String enrollmentUid, String programUid) {
+    public static TeiProgramStageFragment newInstance(String itemUid, String programUid) {
         Bundle bundle = new Bundle();
-        bundle.putString(ARG_ENROLLMENT_UID, enrollmentUid);
+        bundle.putString(ARG_ITEM_UID, itemUid);
         bundle.putString(ARG_PROGRAM_UID, programUid);
 
         TeiProgramStageFragment teiProgramStageFragment = new TeiProgramStageFragment();
@@ -70,7 +70,7 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        teiProgramStagePresenter.drawProgramStages(getEnrollmentUid(), getProgramUid());
+        teiProgramStagePresenter.drawProgramStages(getItemUid(), getProgramUid());
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.hisp.dhis.android.app.views.dashboard.navigation.profile;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -21,16 +22,28 @@ import java.util.List;
 import javax.inject.Inject;
 
 public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implements TeiProfileView {
+    private static final String ARG_ITEM_UID = "arg:itemUid";
+    private static final String ARG_PROGRAM_UID = "arg:programUid";
 
     @Inject
     TeiProfilePresenter teiProfilePresenter;
     private RowViewAdapter adapter;
     private FloatingActionButton floatingActionButton;
 
+    public static TeiProfileFragment newInstance(String itemUid, String programUid) {
+        TeiProfileFragment fragment = new TeiProfileFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_ITEM_UID, itemUid);
+        args.putString(ARG_PROGRAM_UID, programUid);
+
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        inflater.inflate(R.layout.fragment_tei_profile, container, false);
+
 //        initViews(inflater, container);
 
 
@@ -44,17 +57,8 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
         teiProfilePresenter.attachView(this);
 
 
-        return recyclerView;
+        return inflater.inflate(R.layout.fragment_tei_profile, container, false);
     }
-
-//    private void initViews(LayoutInflater inflater, @Nullable ViewGroup container) {
-//        recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_tei_navigation, container, false);
-//
-//
-//        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-//        recyclerView.setLayoutManager(linearLayoutManager);
-//        recyclerView.setAdapter(adapter);
-//    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -64,10 +68,8 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new RowViewAdapter(getFragmentManager());
         recyclerView.setAdapter(adapter);
-        floatingActionButton = (FloatingActionButton) view.findViewById(R.id.fab_edit_profile);
-        floatingActionButton.setVisibility(View.VISIBLE);
 
-        teiProfilePresenter.drawProfile("Enrollment uid");
+        teiProfilePresenter.drawProfile(getItemUid());
     }
 
     @Override
@@ -81,8 +83,30 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
         //adapter.swap(formEntities);
     }
 
+
+    //TODO: Review if we should still keep this in AbsTeiNavigationSectionFragment
+//    private String getItemUid() {
+//        if (getArguments() == null || getArguments()
+//                .getString(ARG_ITEM_UID, null) == null) {
+//            throw new IllegalArgumentException("You must pass item uid in intent extras");
+//        }
+//
+//        return getArguments().getString(ARG_ITEM_UID, null);
+//    }
+//
+//    private String getProgramUid() {
+//        if (getArguments() == null || getArguments()
+//                .getString(ARG_PROGRAM_UID, null) == null) {
+//            throw new IllegalArgumentException("You must pass program uid in intent extras");
+//        }
+//
+//        return getArguments().getString(ARG_PROGRAM_UID, null);
+//    }
+
     @Override
     protected RecyclerView.Adapter getAdapter() {
         return adapter;
     }
+
+
 }

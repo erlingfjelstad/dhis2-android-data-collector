@@ -36,6 +36,8 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
 
     @Override
     public void drawProfile(String enrollmentUid) {
+
+
         /*
 
         //something like this, but figure out how to get the tei instance.

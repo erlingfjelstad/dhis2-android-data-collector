@@ -1,9 +1,12 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.OvershootInterpolator;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
@@ -38,6 +42,9 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     TeiNavigationPresenter teiNavigationPresenter;
 
     private FontTextView firstAttribute, secondAttribute;
+    private FloatingActionButton floatingActionButton;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     public TeiNavigationFragment() {
         // Required empty public constructor
@@ -82,8 +89,15 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         super.onViewCreated(view, savedInstanceState);
         initViewPager(view);
         initAppBarLayout(view);
+        setUpFloatingActionButton(view);
 
         teiNavigationPresenter.configureAppBar(getItemUid(), getProgramUid());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        teiNavigationPresenter.detachView();
     }
 
     private void initAppBarLayout(View view) {
@@ -99,19 +113,26 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         });
     }
 
-    //TODO: Fix deprecated tabLayout.setOnTabSelectedListener
+    /**
+     * Default icon is ic_add because teiProfileStageFragment is default
+     * @param view
+     */
+    private void setUpFloatingActionButton(View view) {
+        floatingActionButton = (FloatingActionButton) view.findViewById(R.id.fab_tei_dashboard);
+        floatingActionButton.setImageResource(R.drawable.ic_add);
+    }
+
     private void initViewPager(View view) {
-        final ViewPager viewPager = ((ViewPager) view.findViewById(R.id.view_pager));
+        viewPager = ((ViewPager) view.findViewById(R.id.view_pager));
         viewPager.setAdapter(new DashboardPageAdapter(
                 getActivity().getSupportFragmentManager()));
 
         viewPager.setOffscreenPageLimit(2);
-        TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
+        tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
 
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(
-                (tabLayout)));
+        viewPager.addOnPageChangeListener(new DashboardViewPager());
 
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
@@ -150,7 +171,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     //TODO: Fix this hack and maybe move to recyclerView
     @Override
     public void populateAppBar(List<FormEntityText> formEntities) {
-        if(formEntities.size() > 1) {
+        if (formEntities.size() > 1) {
             FormEntityText formEntityText1 = formEntities.get(0);
             FormEntityText formEntityText2 = formEntities.get(1);
             String displayText1 = formEntityText1.getId() + ": " + formEntityText1.getLabel();
@@ -174,7 +195,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 case VIEW_PAGER_ITEM_PROGRAM_STAGES:
                     return TeiProgramStageFragment.newInstance(getItemUid(), getProgramUid());
                 case VIEW_PAGER_ITEM_TEI_PROFILE:
-                    return new TeiProfileFragment();
+                    return TeiProfileFragment.newInstance(getItemUid(), getProgramUid());
                 case VIEW_PAGER_ITEM_WIDGETS:
                     return new TeiWidgetFragment();
             }
@@ -185,5 +206,75 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             return 3;
         }
 
+    }
+
+    private void playFabAnimation() {
+        if (!floatingActionButton.isShown()) {
+            floatingActionButton.setVisibility(View.VISIBLE);
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(floatingActionButton, "scaleX", 0, 1);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(floatingActionButton, "scaleY", 0, 1);
+            AnimatorSet animSetXY = new AnimatorSet();
+            animSetXY.playTogether(scaleX, scaleY);
+            animSetXY.setInterpolator(new OvershootInterpolator());
+            animSetXY.setDuration(256);
+            animSetXY.start();
+        } else {
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(floatingActionButton, "scaleX", 0, 1);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(floatingActionButton, "scaleY", 0, 1);
+            AnimatorSet animSetXY = new AnimatorSet();
+            animSetXY.playTogether(scaleY, scaleX);
+            animSetXY.setInterpolator(new OvershootInterpolator());
+            animSetXY.setDuration(256);
+            animSetXY.start();
+        }
+    }
+
+    private void setSelectedTab(int position) {
+        TabLayout.Tab tab = tabLayout.getTabAt(position);
+        if (tab != null) {
+            tab.select();
+        }
+    }
+
+    private class DashboardViewPager implements ViewPager.OnPageChangeListener {
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            tabLayout.setScrollPosition(position, positionOffset, false);
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            switch (position) {
+                case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
+                    if (floatingActionButton != null) {
+                        playFabAnimation();
+                        floatingActionButton.setImageResource(R.drawable.ic_add);
+                        setSelectedTab(position);
+                    }
+
+                    break;
+                }
+                case VIEW_PAGER_ITEM_TEI_PROFILE: {
+                    if (floatingActionButton != null) {
+                        playFabAnimation();
+                        floatingActionButton.setImageResource(R.drawable.ic_edit_white);
+                        setSelectedTab(position);
+                    }
+                    break;
+                }
+                case VIEW_PAGER_ITEM_WIDGETS: {
+                    playFabAnimation();
+                    floatingActionButton.setVisibility(View.GONE);
+                    setSelectedTab(position);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
     }
 }

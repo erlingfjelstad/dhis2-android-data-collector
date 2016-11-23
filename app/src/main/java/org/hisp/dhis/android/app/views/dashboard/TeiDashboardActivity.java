@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.widget.DrawerLayout;
-import android.view.View;
 
 import org.hisp.dhis.android.app.FormComponent;
 import org.hisp.dhis.android.app.R;
@@ -25,7 +23,6 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
     @Inject
     TeiDashboardPresenter teiDashboardPresenter;
 
-    private DrawerLayout drawerLayout;
     private String selectedUid;
 
     private FloatingActionButton floatingActionButton;
@@ -49,14 +46,9 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tei_dashboard);
 
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .replace(R.id.data_entry_pane, new DataEntryContainerFragment())
-//                .commit();
-
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.data_entry_pane, TeiNavigationFragment.newInstance(getItemUid(), getProgramUid()))
+                .replace(R.id.frame_tei_dashboard, TeiNavigationFragment.newInstance(getItemUid(), getProgramUid()))
                 .commit();
 
         // if using two-pane layout (tablets in landscape mode), drawerLayout will be null
@@ -80,8 +72,6 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         // inject dependencies
         formComponent.inject(this);
 
-//        teiDashboardPresenter.configureAppBar(getItemUid(), getProgramUid() );
-        floatingActionButton = (FloatingActionButton) findViewById(R.id.floating_action_button); //todo should perhaps be in TeiNavigationFragment to change usage depending on tabs
     }
 
     @Override

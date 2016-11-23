@@ -69,11 +69,9 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     }
 
     private void generateDummyProgramStages(final String enrollmentUid, final String programUid) {
-//        List<ExpansionPanel> expansionPanels = new ArrayList<>();
+
         //TODO: find the view holder for ReportEntities and update the icon according to the status.
         //TODO: Fix the "123"'s and so on to be the actual uid's and display the event name from the hashMap instead.
-        final List<ProgramStage> programStages = new ArrayList<>();
-        List<Event> events = new ArrayList<>();
 
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();

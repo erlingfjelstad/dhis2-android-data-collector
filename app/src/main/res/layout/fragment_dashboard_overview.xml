@@ -52,7 +52,6 @@
                             android:clickable="false"
                             android:gravity="center_vertical"
                             android:padding="8dp"
-                            android:text="First name: John"
                             android:textSize="@dimen/text_size_medium"
                             app:font="@string/font_name_light" />
 
@@ -64,7 +63,6 @@
                             android:clickable="false"
                             android:gravity="center_vertical"
                             android:padding="8dp"
-                            android:text="Last name: Smith"
                             android:textSize="@dimen/text_size_medium"
                             app:font="@string/font_name_light" />
                     </LinearLayout>
@@ -118,6 +116,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_tei_dashboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/keyline_default"
+        app:backgroundTint="@color/color_accent_default"
+        app:elevation="8dp"
+        app:layout_anchor="@id/view_pager"
+        app:layout_anchorGravity="bottom|right|end"
+        app:pressedTranslationZ="8dp"/>
 
     </android.support.design.widget.CoordinatorLayout>
 </LinearLayout>
