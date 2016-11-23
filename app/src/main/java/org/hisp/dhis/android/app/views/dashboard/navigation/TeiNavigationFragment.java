@@ -1,8 +1,6 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -16,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.OvershootInterpolator;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
@@ -29,6 +26,8 @@ import org.hisp.dhis.client.sdk.ui.views.FontTextView;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import static org.hisp.dhis.client.sdk.ui.AnimationUtils.playFabShrinkPopAnimation;
 
 public class TeiNavigationFragment extends Fragment implements TeiNavigationView {
     private static final String ARG_ITEM_UID = "arg:itemUid";
@@ -115,6 +114,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
     /**
      * Default icon is ic_add because teiProfileStageFragment is default
+     *
      * @param view
      */
     private void setUpFloatingActionButton(View view) {
@@ -208,27 +208,6 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
     }
 
-    private void playFabAnimation() {
-        if (!floatingActionButton.isShown()) {
-            floatingActionButton.setVisibility(View.VISIBLE);
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(floatingActionButton, "scaleX", 0, 1);
-            ObjectAnimator scaleY = ObjectAnimator.ofFloat(floatingActionButton, "scaleY", 0, 1);
-            AnimatorSet animSetXY = new AnimatorSet();
-            animSetXY.playTogether(scaleX, scaleY);
-            animSetXY.setInterpolator(new OvershootInterpolator());
-            animSetXY.setDuration(256);
-            animSetXY.start();
-        } else {
-            ObjectAnimator scaleX = ObjectAnimator.ofFloat(floatingActionButton, "scaleX", 0, 1);
-            ObjectAnimator scaleY = ObjectAnimator.ofFloat(floatingActionButton, "scaleY", 0, 1);
-            AnimatorSet animSetXY = new AnimatorSet();
-            animSetXY.playTogether(scaleY, scaleX);
-            animSetXY.setInterpolator(new OvershootInterpolator());
-            animSetXY.setDuration(256);
-            animSetXY.start();
-        }
-    }
-
     private void setSelectedTab(int position) {
         TabLayout.Tab tab = tabLayout.getTabAt(position);
         if (tab != null) {
@@ -248,7 +227,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             switch (position) {
                 case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
                     if (floatingActionButton != null) {
-                        playFabAnimation();
+                        playFabShrinkPopAnimation(floatingActionButton);
                         floatingActionButton.setImageResource(R.drawable.ic_add);
                         setSelectedTab(position);
                     }
@@ -257,14 +236,14 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 }
                 case VIEW_PAGER_ITEM_TEI_PROFILE: {
                     if (floatingActionButton != null) {
-                        playFabAnimation();
+                        playFabShrinkPopAnimation(floatingActionButton);
                         floatingActionButton.setImageResource(R.drawable.ic_edit_white);
                         setSelectedTab(position);
                     }
                     break;
                 }
                 case VIEW_PAGER_ITEM_WIDGETS: {
-                    playFabAnimation();
+                    playFabShrinkPopAnimation(floatingActionButton);
                     floatingActionButton.setVisibility(View.GONE);
                     setSelectedTab(position);
                     break;
