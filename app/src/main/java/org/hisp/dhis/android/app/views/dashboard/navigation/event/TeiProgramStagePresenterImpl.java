@@ -13,6 +13,7 @@ import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
+import org.hisp.dhis.client.sdk.utils.LocaleUtils;
 import org.hisp.dhis.client.sdk.utils.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -22,11 +23,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -56,6 +57,28 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     public void onEventClicked(String eventUid) {
         teiDashboardPresenter.showDataEntryForEvent(eventUid);
         teiDashboardPresenter.hideMenu();
+    }
+
+    @Override
+    public void navigateTo(String itemUid) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
+
+        subscription = new CompositeSubscription();
+
+        subscription.add(getEvent(itemUid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Event>() {
+                    @Override
+                    public void call(Event event) {
+                        if (teiProgramStageView != null) {
+                            teiProgramStageView.navigateToFormSection(event.uid(), event.program(), event.programStage());
+                        }
+                    }
+                }));
     }
 
     @Override
@@ -194,7 +217,7 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
                 EventStatus eventStatus = event.status();
                 Date dateToShow;
-                switch (eventStatus){
+                switch (eventStatus) {
                     case ACTIVE:
                         dateToShow = event.eventDate();
                         break;
@@ -208,11 +231,12 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         dateToShow = event.eventDate();
                         break;
 
-                    default: throw new IllegalArgumentException("Unknown event status");
+                    default:
+                        throw new IllegalArgumentException("Unknown event status");
                 }
                 //Map<String, String> dataElementToValueMap = mapDataElementToValue(event.getDataValues());
                 Map<String, String> dataElementToValueMap = new HashMap<>();
-                SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+                SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT, LocaleUtils.getLocale());
 
 
                 dataElementToValueMap.put(ReportEntityFilter.DATE_KEY, sdf.format(dateToShow));
@@ -237,6 +261,10 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
     private Observable<List<Event>> getEventsForEnrollment(final String enrollmentUid) {
         return Observable.just(eventInteractor.store().queryEventsForEnrollment(enrollmentUid));
+    }
+
+    private Observable<Event> getEvent(final String eventUid) {
+        return Observable.just(eventInteractor.store().query(eventUid));
     }
 
     private Observable<Program> getProgram(final String programUid) {

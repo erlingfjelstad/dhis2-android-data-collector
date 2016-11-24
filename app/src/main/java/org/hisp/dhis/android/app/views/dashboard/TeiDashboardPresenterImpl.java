@@ -22,7 +22,7 @@ public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
 
     @Override
     public void showDataEntryForEvent(String eventUid) {
-        formSectionPresenter.createDataEntryForm(eventUid, "");
+        formSectionPresenter.createDataEntryForm(eventUid, "", "");
     }
 
 

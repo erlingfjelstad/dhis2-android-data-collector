@@ -104,20 +104,21 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     FilterableDialogFragment sectionDialogFragment;
     AlertDialog alertDialog;
 
-    public static void navigateToNewItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType) {
-        navigateToItem(activity, itemUid, programUid, contextType, true);
+    public static void navigateToNewItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
+        navigateToItem(activity, itemUid, programUid, programStageUid, contextType, true);
     }
 
-    public static void navigateToExistingItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType) {
-        navigateToItem(activity, itemUid, programUid, contextType, false);
+    public static void navigateToExistingItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
+        navigateToItem(activity, itemUid, programUid, programStageUid, contextType, false);
     }
 
-    private static void navigateToItem(Activity activity, String itemUid, String programUid, FormSectionContextType contextType, boolean isItemNew) {
+    private static void navigateToItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType, boolean isItemNew) {
         isNull(activity, "activity must not be null");
 
         Intent intent = new Intent(activity, FormSectionActivity.class);
         intent.putExtra(ARG_ITEM_UID, itemUid);
         intent.putExtra(ARG_PROGRAM_UID, programUid);
+        intent.putExtra(ARG_PROGRAM_STAGE_UID, programStageUid);
         intent.putExtra(ARG_CONTEXT_TYPE, contextType.toString());
         intent.putExtra(ARG_IS_ITEM_NEW, isItemNew);
         activity.startActivity(intent);
@@ -204,7 +205,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         formComponent.inject(this);
 
         // start building the form
-        formSectionPresenter.createDataEntryForm(getItemUid(), getProgramUid());
+        formSectionPresenter.createDataEntryForm(getItemUid(), getProgramUid(), getProgramStageUid());
 
         setupLocationPermissions();
     }

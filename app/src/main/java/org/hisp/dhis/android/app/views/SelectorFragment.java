@@ -308,17 +308,17 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivityWithNewItem(String itemUid, String programUid, FormSectionContextType contextType) {
+    public void navigateToFormSectionActivityWithNewItem(String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
         logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
-        FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, contextType);
+        FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, programStageUid, contextType);
     }
 
     @Override
-    public void navigateToFormSectionActivityWithExistingItem(String itemUid, String programUid, FormSectionContextType contextType) {
+    public void navigateToFormSectionActivityWithExistingItem(String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
         if(FormSectionContextType.REGISTRATION.equals(contextType)) {
             TeiDashboardActivity.navigateTo(getActivity(), itemUid, programUid);
         } else {
-            FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, contextType);
+            FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, contextType);
         }
     }
 

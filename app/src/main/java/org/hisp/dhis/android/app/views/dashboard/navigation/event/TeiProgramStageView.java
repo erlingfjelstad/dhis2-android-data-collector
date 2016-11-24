@@ -11,4 +11,6 @@ public interface TeiProgramStageView extends View {
     void drawProgramStages(List<ExpansionPanel> programStages);
 
     void onEventClicked(FormEntity event);
+
+    void navigateToFormSection(String itemUid, String programUid, String programStageUid);
 }

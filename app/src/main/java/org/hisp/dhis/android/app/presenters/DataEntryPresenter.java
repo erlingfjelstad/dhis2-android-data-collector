@@ -7,5 +7,5 @@ public interface DataEntryPresenter extends Presenter {
 
     void createDataEntryFormSection(String eventId, String programId, String programStageId, String programStageSectionId);
 
-    void createDataEntryFormSingleSection(String itemId, String programId);
+    void createDataEntryForm(String itemId, String programId, String programStageUid, String programStageSectionUid);
 }

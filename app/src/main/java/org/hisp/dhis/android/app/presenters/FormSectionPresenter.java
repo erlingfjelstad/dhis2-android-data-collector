@@ -6,7 +6,7 @@ import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
 import java.util.Date;
 
 public interface FormSectionPresenter extends Presenter {
-    void createDataEntryForm(String itemUid, String programUid);
+    void createDataEntryForm(String itemUid, String programUid, String programStageUid);
 
     void saveEventDate(String eventUid, Date eventDate);
 

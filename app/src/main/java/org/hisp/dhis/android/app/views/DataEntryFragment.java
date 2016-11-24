@@ -68,12 +68,12 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         return dataEntryFragment;
     }
 
-    public static DataEntryFragment newInstanceForSection(@NonNull String eventId,
+    public static DataEntryFragment newInstanceForSection(@NonNull String itemId,
                                                           @NonNull String programId,
                                                           @NonNull String programStageId,
                                                           @NonNull String programStageSectionId) {
         Bundle arguments = new Bundle();
-        arguments.putString(ARG_EVENT_ID, eventId);
+        arguments.putString(ARG_ITEM_ID, itemId);
         arguments.putString(ARG_PROGRAM_ID, programId);
         arguments.putString(ARG_PROGRAM_STAGE_ID, programStageId);
         arguments.putString(ARG_PROGRAM_STAGE_SECTION_ID, programStageSectionId);
@@ -88,9 +88,6 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         return getArguments().getString(ARG_ITEM_ID, null);
     }
 
-    private String getEventId() {
-        return getArguments().getString(ARG_EVENT_ID, null);
-    }
 
     private String getProgramId() {
         return getArguments().getString(ARG_PROGRAM_ID, null);
@@ -152,18 +149,19 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         // because od stupid fragment lifecycle
         // ((EventCaptureApp) getActivity().getApplication()).getFormComponent().inject(this);
 
-        if (!isEmpty(getProgramStageSectionId())) {
-            // Pass event id into presenter
-            dataEntryPresenter.createDataEntryFormSection(getEventId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
-        }
-        else if (!isEmpty(getProgramStageId())) {
-            // Pass event id into presenter
-            dataEntryPresenter.createDataEntryFormStage(getEventId(), getProgramId(), getProgramStageId());
-        }
-        else {
-            //TEMPORARY ELSE CLAUSE:
-            dataEntryPresenter.createDataEntryFormSingleSection(getItemId(), getProgramId());
-        }
+        dataEntryPresenter.createDataEntryForm(getItemId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
+//        if (!isEmpty(getProgramStageSectionId())) {
+//            // Pass event id into presenter
+//            dataEntryPresenter.createDataEntryFormSection(getEventId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
+//        }
+//        else if (!isEmpty(getProgramStageId())) {
+//            // Pass event id into presenter
+//            dataEntryPresenter.createDataEntryFormStage(getItemId(), getProgramId(), getProgramStageId());
+//        }
+//        else {
+//            //TEMPORARY ELSE CLAUSE:
+//            dataEntryPresenter.createDataEntryForm(getItemId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
+//        }
 
 
     }

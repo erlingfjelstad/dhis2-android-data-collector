@@ -125,23 +125,29 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
         }
     }
 
-    //TODO: Remove arg programStageId
     @Override
-    public void createDataEntryFormSingleSection(String itemId, String programId) {
+    public void createDataEntryForm(String itemId, String programId, String programStageUid, String programStageSectionUid) {
         Program program = getProgram(programId).toBlocking().first();
         if (program != null && program.programType() != null) {
             switch (program.programType()) {
-                case WITH_REGISTRATION:
-                    createEnrollmentDataEntryForm(itemId, programId);
+                case WITH_REGISTRATION: {
+                    if (programStageUid == null) {
+                        createEnrollmentDataEntryForm(itemId, programId);
+                    } else {
+                        createEventDataEntryForm(itemId, programId, programStageUid, programStageSectionUid);
+                    }
                     break;
-                case WITHOUT_REGISTRATION:
-                    createEventDataEntryFormStage(itemId, programId);
+                }
+                case WITHOUT_REGISTRATION: {
+                    createEventDataEntryForm(itemId, programId, programStageUid, programStageSectionUid);
                     break;
+                }
                 default:
                     throw new IllegalArgumentException("Program type not supported");
             }
         }
     }
+
     //TODO: Re-introduce ruleEngine
     private void createEnrollmentDataEntryForm(final String enrollmentId, final String programId) {
         logger.d(TAG, "EnrollmentId: " + enrollmentId);
@@ -178,49 +184,57 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
 //                    }
 //                })
                 Observable.zip(getEnrollment(enrollmentId), getProgram(programId),
-                                new Func2<Enrollment, Program, AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
+                        new Func2<Enrollment, Program, AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
 
-                                    @Override
-                                    public AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> call(
-                                            Enrollment enrollment, Program program) {
-                                        List<TrackedEntityAttributeValue> trackedEntityAttributeValues = trackedEntityAttributeValueInteractor.store().query(enrollment.trackedEntityInstance());
-                                        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceInteractor.store().queryByUid(enrollment.trackedEntityInstance());
-                                        if(trackedEntityAttributeValues != null && trackedEntityInstance != null) {
-                                            trackedEntityInstance = trackedEntityInstance.toBuilder().trackedEntityAttributeValues(trackedEntityAttributeValues).build();
-                                        }
+                            @Override
+                            public AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> call(
+                                    Enrollment enrollment, Program program) {
+                                List<TrackedEntityAttributeValue> trackedEntityAttributeValues = trackedEntityAttributeValueInteractor.store().query(enrollment.trackedEntityInstance());
+                                TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceInteractor.store().queryByUid(enrollment.trackedEntityInstance());
+                                if (trackedEntityAttributeValues != null && trackedEntityInstance != null) {
+                                    trackedEntityInstance = trackedEntityInstance.toBuilder().trackedEntityAttributeValues(trackedEntityAttributeValues).build();
+                                }
 
-                                        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes =
-                                                program.programTrackedEntityAttributes();
-                                        List<FormEntity> formEntities = transformProgramTrackedEntityAttributes(
-                                                trackedEntityInstance, programTrackedEntityAttributes);
+                                List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes =
+                                        program.programTrackedEntityAttributes();
+                                List<FormEntity> formEntities = transformProgramTrackedEntityAttributes(
+                                        trackedEntityInstance, programTrackedEntityAttributes);
 
-                                        return new AbstractMap.SimpleEntry<>(formEntities, (List<FormEntityAction>) new ArrayList<FormEntityAction>());
-                                    }
-                                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
-                    @Override
-                    public void call(AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> result) {
-                        if (dataEntryView != null) {
-                            dataEntryView.showDataEntryForm(result.getKey(), result.getValue());
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        logger.e(TAG, "Something went wrong during form construction", throwable);
-                    }
-                }));
+                                return new AbstractMap.SimpleEntry<>(formEntities, (List<FormEntityAction>) new ArrayList<FormEntityAction>());
+                            }
+                        })
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
+                            @Override
+                            public void call(AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> result) {
+                                if (dataEntryView != null) {
+                                    dataEntryView.showDataEntryForm(result.getKey(), result.getValue());
+                                }
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                logger.e(TAG, "Something went wrong during form construction", throwable);
+                            }
+                        }));
 
         subscription.add(saveTrackedEntityAttributeValues());
 //        subscription.add(subscribeToEngine());
 
     }
 
-    private void createEventDataEntryFormStage(final String eventId, final String programId) {
-//        logger.d(TAG, "ProgramStageId: " + programStageId);
+    private void createEventDataEntryForm(final String eventId, final String programId, final String programStageUid, final String programStageSectionUid) {
+        if(programStageSectionUid != null) {
+            createDataEntryFormSection(eventId, programId, programStageUid, programStageSectionUid);
+        }
+        else {
+            createDataEntryFormStage(eventId, programId, programStageUid);
+        }
+    }
 
+    @Override
+    public void createDataEntryFormStage(final String eventId, final String programId, final String programStageId) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -251,72 +265,8 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                             throw new IllegalArgumentException("No program stage uid found for programStageId: " + event.programStage());
                                         }
                                         List<TrackedEntityDataValue> dataValues = trackedEntityDataValueInteractor.store().query(eventId);
-                                        if(dataValues != null) {
+                                        if (dataValues != null) {
                                             event = event.toBuilder().trackedEntityDataValues(dataValues).build();
-                                        }
-                                        List<ProgramStageDataElement> dataElements =
-                                                currentProgramStage.programStageDataElements();
-                                        List<FormEntity> formEntities = transformDataElements(
-                                                username, event, dataElements);
-
-                                        return new AbstractMap.SimpleEntry<>(formEntities, formEntityActions);
-                                    }
-                                });
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
-                    @Override
-                    public void call(AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> result) {
-                        if (dataEntryView != null) {
-                            dataEntryView.showDataEntryForm(result.getKey(), result.getValue());
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        logger.e(TAG, "Something went wrong during form construction", throwable);
-                    }
-                }));
-
-        subscription.add(saveTrackedEntityDataValues());
-        subscription.add(subscribeToEngine());
-    }
-
-    //TODO: DEPRECATE
-    @Override
-    public void createDataEntryFormStage(final String eventId, final String programId, final String programStageId) {
-        logger.d(TAG, "ProgramStageId: " + programStageId);
-
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-            subscription = null;
-        }
-
-        final String username = currentUserInteractor.username();
-
-        subscription = new CompositeSubscription();
-        subscription.add(engine().take(1).switchMap(
-                new Func1<List<FormEntityAction>, Observable<AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>>() {
-                    @Override
-                    public Observable<AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>> call(
-                            final List<FormEntityAction> formEntityActions) {
-                        return Observable.zip(getEvent(eventId), getProgram(programId),
-                                new Func2<Event, Program, AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
-
-                                    @Override
-                                    public AbstractMap.SimpleEntry<List<FormEntity>, List<FormEntityAction>> call(
-                                            Event event, Program program) {
-                                        ProgramStage currentProgramStage = null;
-                                        for (ProgramStage programStage : program.programStages()) {
-                                            if (programStage.uid().equals(programStageId)) {
-                                                currentProgramStage = programStage;
-                                            }
-                                        }
-
-                                        if (currentProgramStage == null) {
-                                            throw new IllegalArgumentException("No program stage uid found for programStageId: " + programStageId);
                                         }
                                         List<ProgramStageDataElement> dataElements =
                                                 currentProgramStage.programStageDataElements();

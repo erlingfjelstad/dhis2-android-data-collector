@@ -95,16 +95,23 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     @Override
-    public void createDataEntryForm(final String itemUid, String programUid) {
+    public void createDataEntryForm(final String itemUid, String programUid, String programStageUid) {
         Program program = getProgram(programUid).toBlocking().first();
-        if(program != null && program.programType() != null) {
+        if (program != null && program.programType() != null) {
             switch (program.programType()) {
-                case WITH_REGISTRATION:
-                    createEnrollmentDataEntryForm(itemUid);
-                    break;
-                case WITHOUT_REGISTRATION:
+                case WITH_REGISTRATION: {
+                    if (programStageUid == null) {
+                        createEnrollmentDataEntryForm(itemUid);
+                    }
+                    else {
+                        createEventDataEntryForm(itemUid);
+                    }
+                }
+                break;
+                case WITHOUT_REGISTRATION: {
                     createEventDataEntryForm(itemUid);
                     break;
+                }
                 default:
                     throw new IllegalArgumentException("ProgramType is not supported");
             }
@@ -516,10 +523,10 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                             currentProgramStage = program.programStages().get(0);
                         }
 
-                        List<ProgramStageSection> stageSections = new ArrayList<>();
+                        List<ProgramStageSection> stageSections = null;
 
-                        if(currentProgramStage != null && currentProgramStage.programStageSections() != null) {
-                            stageSections = currentProgramStage.programStageSections();
+                        if (currentProgramStage != null && currentProgramStage.programStageSections() != null) {
+                            stageSections = new ArrayList<>(currentProgramStage.programStageSections());
                         }
 
                         String chooseSectionPrompt = null;

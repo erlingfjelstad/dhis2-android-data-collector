@@ -486,7 +486,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Enrollment enrollment) {
                         if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivityWithNewItem(enrollment.uid(), enrollment.program(), FormSectionContextType.REGISTRATION);
+                            selectorView.navigateToFormSectionActivityWithNewItem(enrollment.uid(), enrollment.program(), null, FormSectionContextType.REGISTRATION);
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -547,7 +547,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             @Override
                             public void call(Event event) {
                                 if (selectorView != null) {
-                                    selectorView.navigateToFormSectionActivityWithNewItem(event.uid(), event.program(), FormSectionContextType.REPORT);
+                                    selectorView.navigateToFormSectionActivityWithNewItem(event.uid(), event.program(), event.programStage(), FormSectionContextType.REPORT);
                                 }
                             }
                         }, new Action1<Throwable>() {
@@ -578,30 +578,32 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     @Override
     public void navigateTo(final ReportEntity reportEntity, final String programId) {
-        subscription.add(getProgram(programId).map(new Func1<Program, ProgramType>() {
-            @Override
-            public ProgramType call(Program program) {
-                return program.programType();
-            }
-        }).subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<ProgramType>() {
-            @Override
-            public void call(ProgramType programType) {
-                if (selectorView != null && programType != null) {
-                    switch (programType) {
-                        case WITH_REGISTRATION:
-                            selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), programId, FormSectionContextType.REGISTRATION);
-                            break;
-                        case WITHOUT_REGISTRATION:
-                            selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), programId, FormSectionContextType.REPORT);
-                            break;
-                        default:
-                            throw new IllegalArgumentException("ProgramType not supported");
+        subscription.add(getProgram(programId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Program>() {
+                    @Override
+                    public void call(Program program) {
+                        if (selectorView != null && program != null && program.programType() != null) {
+                            ProgramType programType = program.programType();
+                            switch (programType) {
+                                case WITH_REGISTRATION: {
+                                    selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), program.uid(), null, FormSectionContextType.REGISTRATION);
+                                    break;
+                                }
+                                case WITHOUT_REGISTRATION: {
+                                    if (program.programStages() != null && !program.programStages().isEmpty()) {
+                                        ProgramStage programStage = program.programStages().get(0); //Only one stage in program without registration
+                                        selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), program.uid(), programStage.uid(), FormSectionContextType.REPORT);
+                                    }
+                                    break;
+                                }
+                                default:
+                                    throw new IllegalArgumentException("ProgramType not supported");
+                            }
+                        }
                     }
-                }
-            }
-        }));
+                }));
     }
 
     private void deleteEvent(final ReportEntity reportEntity) {

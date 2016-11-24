@@ -7,4 +7,6 @@ public interface TeiProgramStagePresenter extends Presenter {
     void drawProgramStages(String enrollmentUid, String programUid);
 
     void onEventClicked(String eventUid);
+
+    void navigateTo(String itemUid);
 }
