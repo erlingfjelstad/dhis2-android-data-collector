@@ -475,6 +475,14 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                             if (ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
                                 currentProgramStage = program.programStages().get(0);
                             }
+                            else { // program is with registration, we need to loop through all stages and find matching uid
+                                for (ProgramStage programStage : program.programStages()) {
+                                    if(event.programStage().equals(programStage.uid())) {
+                                        currentProgramStage = programStage;
+                                        break;
+                                    }
+                                }
+                            }
 
                             if (currentProgramStage == null) {
                                 throw new IllegalArgumentException("No stages found for program");
