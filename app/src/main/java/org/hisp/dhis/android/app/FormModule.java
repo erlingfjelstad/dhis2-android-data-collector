@@ -106,8 +106,13 @@ public class FormModule {
 
     @Provides
     public TeiProfilePresenter providesTeiProfilePresenter(
-            @Nullable EnrollmentInteractor enrollmentInteractor) {
-        return new TeiProfilePresenterImpl(enrollmentInteractor);
+            @Nullable ProgramInteractor programInteractor,
+            @Nullable EnrollmentInteractor enrollmentInteractor,
+            @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
+            @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
+            @Nullable OptionSetInteractor optionSetInteractor,
+            @Nullable Logger logger) {
+        return new TeiProfilePresenterImpl(programInteractor, enrollmentInteractor, trackedEntityInstanceInteractor, trackedEntityAttributeValueInteractor, optionSetInteractor, logger);
     }
 
     @Provides

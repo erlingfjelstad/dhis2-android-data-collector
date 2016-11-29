@@ -69,7 +69,7 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
         adapter = new RowViewAdapter(getFragmentManager());
         recyclerView.setAdapter(adapter);
 
-        teiProfilePresenter.drawProfile(getItemUid());
+        teiProfilePresenter.drawProfile(getItemUid(), getProgramUid());
     }
 
     @Override
@@ -80,7 +80,7 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
 
     @Override
     public void drawProfileItems(List<FormEntity> formEntities) {
-        //adapter.swap(formEntities);
+        adapter.swap(formEntities);
     }
 
 

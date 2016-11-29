@@ -14,10 +14,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.DataEntryFragment;
+import org.hisp.dhis.android.app.views.DataEntryView;
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetFragment;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
@@ -120,6 +126,27 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     private void setUpFloatingActionButton(View view) {
         floatingActionButton = (FloatingActionButton) view.findViewById(R.id.fab_tei_dashboard);
         floatingActionButton.setImageResource(R.drawable.ic_add);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (viewPager.getCurrentItem()) {
+                    case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
+                        Toast.makeText(v.getContext(), "Hello from Stages", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+                    case VIEW_PAGER_ITEM_TEI_PROFILE: {
+                        Toast.makeText(v.getContext(), "Hello from Profile", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+                    case VIEW_PAGER_ITEM_WIDGETS: {
+                        Toast.makeText(v.getContext(), "Hello from Widgets", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+                    default:break;
+                }
+            }
+        });
+
     }
 
     private void initViewPager(View view) {
