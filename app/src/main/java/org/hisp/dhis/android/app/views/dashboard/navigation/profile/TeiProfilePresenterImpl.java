@@ -107,6 +107,7 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
                                 optionSet = optionSetInteractor.store().queryByUid(programTrackedEntityAttribute.trackedEntityAttribute().optionSet().uid());
                             }
                             FormEntity formEntity = FormUtils.transformTrackedEntityAttribute(trackedEntityInstance.uid(), attributeValue, programTrackedEntityAttribute, optionSet, onValueChangedListener);
+                            formEntity.setLocked(true);
                             formEntities.add(formEntity);
                         }
 
@@ -128,56 +129,6 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
                         logger.e(TAG, "Something went wrong during form construction", throwable);
                     }
                 });
-
-
-        /*
-
-        //something like this, but figure out how to get the tei instance.
-        Enrollment e = enrollmentInteractor.store().query(enrollmentUid);
-        e.trackedEntityInstance();
-        TrackedEntityInstanceInteractor tei;
-        tei.store().queryByUid(e.trackedEntityInstance()).trackedEntityAttributeValues();*/
-
-        /*if (enrollmentInteractor != null) {
-
-            enrollmentInteractor.get(enrollmentUid).subscribe(new Action1<Enrollment>() {
-                @Override
-                public void call(Enrollment enrollment) {
-                    teiProfileView.drawProfileItems(transformTrackedEntityAttributeValues(enrollment
-                            .getTrackedEntityAttributeValues()));
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    //logger.e(TAG, null, throwable);
-                }
-            });
-        }*/
-    }
-
-    private List<FormEntity> transformTrackedEntityAttributeValues(
-            List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-
-        if (trackedEntityAttributeValues == null || trackedEntityAttributeValues.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<FormEntity> formEntities = new ArrayList<>();
-
-        for (TrackedEntityAttributeValue trackedEntityAttributeValue : trackedEntityAttributeValues) {
-            formEntities.add(transformTrackedEntityAttribute(trackedEntityAttributeValue));
-        }
-
-        return formEntities;
-    }
-
-
-    //TODO: NOTIFY listener is by default set to false
-    private FormEntity transformTrackedEntityAttribute(TrackedEntityAttributeValue trackedEntityAttributeValue) {
-      /*  FormEntityText formEntityText = new FormEntityText(trackedEntityAttributeValue.getTrackedEntityAttributeUId(), "");
-        formEntityText.setValue(trackedEntityAttributeValue.getValue(), false);
-        return formEntityText;*/
-        return null;
 
     }
 

@@ -372,6 +372,12 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                         if (currentProgramStageSection == null) {
                                             throw new IllegalArgumentException("No program stage section found for programStageSectionId: " + programStageSectionId);
                                         }
+
+                                        List<TrackedEntityDataValue> dataValues = trackedEntityDataValueInteractor.store().query(eventId);
+                                        if (dataValues != null) {
+                                            event = event.toBuilder().trackedEntityDataValues(dataValues).build();
+                                        }
+
                                         List<ProgramStageDataElement> programStageDataElements =
                                                 new ArrayList<>(currentProgramStageSection.programStageDataElements());
 
