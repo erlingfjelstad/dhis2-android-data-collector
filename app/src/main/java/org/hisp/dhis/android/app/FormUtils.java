@@ -172,11 +172,6 @@ public class FormUtils {
         DataElement dataElement = stageDataElement.dataElement();
         String label = isEmpty(dataElement.displayFormName()) ?
                 dataElement.displayName() : dataElement.displayFormName();
-
-        if (stageDataElement.compulsory()) {
-            label = label + " (*)";
-        }
-
         return label;
     }
 
