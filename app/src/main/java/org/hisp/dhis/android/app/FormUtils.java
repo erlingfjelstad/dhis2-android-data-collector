@@ -13,6 +13,7 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.RxOnValueChangedListener;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
+import org.hisp.dhis.client.sdk.ui.models.FormEntityCharSequence;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityCheckBox;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityDate;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityEditText;
@@ -37,7 +38,7 @@ public class FormUtils {
                                                              OptionSet optionSet,
                                                              RxOnValueChangedListener onValueChangedListener) {
         TrackedEntityAttribute trackedEntityAttribute = programTrackedEntityAttribute.trackedEntityAttribute();
-        String formEntityLabel = getFormEntityLabel(programTrackedEntityAttribute);
+        String formEntityLabel = programTrackedEntityAttribute.trackedEntityAttribute().displayName();
 
         // logger.d(TAG, "DataElement: " + trackedEntityAttribute.getDisplayName());
         // logger.d(TAG, "ValueType: " + trackedEntityAttribute.getValueType());
@@ -82,117 +83,89 @@ public class FormUtils {
                     formEntityLabel, trackedEntityAttributeValue);
             formEntityFilter.setPicker(picker);
             formEntityFilter.setOnFormEntityChangeListener(onValueChangedListener);
-
+            formEntityFilter.setMandatory(programTrackedEntityAttribute.mandatory());
             return formEntityFilter;
         }
 
+        FormEntityCharSequence formEntity;
+
         switch (trackedEntityAttribute.valueType()) {
             case TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.TEXT, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case LONG_TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.LONG_TEXT, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case PHONE_NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.TEXT, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case EMAIL: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.TEXT, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.NUMBER, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.INTEGER, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.INTEGER_POSITIVE, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_NEGATIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.INTEGER_NEGATIVE, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_ZERO_OR_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityEditText(trackedEntityAttribute.uid(),
                         formEntityLabel, FormEntityEditText.InputType.INTEGER_ZERO_OR_POSITIVE, trackedEntityAttributeValue);
-                formEntityEditText.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case DATE: {
-                FormEntityDate formEntityDate = new FormEntityDate(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityDate(trackedEntityAttribute.uid(),
                         formEntityLabel, trackedEntityAttributeValue);
-                formEntityDate.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityDate.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityDate;
+                break;
             }
             case BOOLEAN: {
-                FormEntityRadioButtons formEntityRadioButtons = new FormEntityRadioButtons(
+                formEntity = new FormEntityRadioButtons(
                         trackedEntityAttribute.uid(), formEntityLabel, trackedEntityAttributeValue);
-                formEntityRadioButtons.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityRadioButtons.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityRadioButtons;
+                break;
             }
             case TRUE_ONLY: {
-                FormEntityCheckBox formEntityCheckBox = new FormEntityCheckBox(
+                formEntity = new FormEntityCheckBox(
                         trackedEntityAttribute.uid(), formEntityLabel, trackedEntityAttributeValue);
-                formEntityCheckBox.setValue(trackedEntityAttributeValue.value(), false);
-                formEntityCheckBox.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityCheckBox;
+                break;
             }
-            default:
+            default: {
 //                logger.d(TAG, "Unsupported FormEntity type: " + trackedEntityAttribute.valueType());
 
-                FormEntityText formEntityText = new FormEntityText(trackedEntityAttribute.uid(),
+                formEntity = new FormEntityText(trackedEntityAttribute.uid(),
                         formEntityLabel);
-                formEntityText.setValue("Unsupported value type: " +
+                formEntity.setValue("Unsupported value type: " +
                         trackedEntityAttribute.valueType(), false);
+                return formEntity;
+            }
 
-                return formEntityText;
-        }
-    }
-
-    private static String getFormEntityLabel(ProgramTrackedEntityAttribute programTrackedEntityAttribute) {
-        TrackedEntityAttribute trackedEntityAttribute = programTrackedEntityAttribute.trackedEntityAttribute();
-        String label = isEmpty(trackedEntityAttribute.displayName()) ?
-                trackedEntityAttribute.displayName() : trackedEntityAttribute.displayName();
-
-        if (programTrackedEntityAttribute.mandatory()) {
-            label = label + " (*)";
         }
 
-        return label;
+        formEntity.setValue(trackedEntityAttributeValue.value(), false);
+        formEntity.setOnFormEntityChangeListener(onValueChangedListener);
+        formEntity.setMandatory(programTrackedEntityAttribute.mandatory());
+        return formEntity;
     }
 
     private static String getFormEntityLabel(ProgramStageDataElement stageDataElement) {
@@ -256,96 +229,74 @@ public class FormUtils {
                     getFormEntityLabel(stageDataElement), dataValue);
             formEntityFilter.setPicker(picker);
             formEntityFilter.setOnFormEntityChangeListener(onValueChangedListener);
-
+            formEntityFilter.setMandatory(stageDataElement.compulsory());
             return formEntityFilter;
         }
 
+        FormEntityCharSequence formEntity;
+
         switch (dataElement.valueType()) {
             case TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.TEXT, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case LONG_TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.LONG_TEXT, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case PHONE_NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.TEXT, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case EMAIL: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.TEXT, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.NUMBER, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.INTEGER, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.INTEGER_POSITIVE, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_NEGATIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.INTEGER_NEGATIVE, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case INTEGER_ZERO_OR_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.uid(),
+                formEntity = new FormEntityEditText(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), FormEntityEditText.InputType.INTEGER_ZERO_OR_POSITIVE, dataValue);
-                formEntityEditText.setValue(dataValue.value(), false);
-                formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityEditText;
+                break;
             }
             case DATE: {
-                FormEntityDate formEntityDate = new FormEntityDate(dataElement.uid(),
+                formEntity = new FormEntityDate(dataElement.uid(),
                         getFormEntityLabel(stageDataElement), dataValue);
-                formEntityDate.setValue(dataValue.value(), false);
-                formEntityDate.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityDate;
+                break;
             }
             case BOOLEAN: {
-                FormEntityRadioButtons formEntityRadioButtons = new FormEntityRadioButtons(
+                formEntity = new FormEntityRadioButtons(
                         dataElement.uid(), getFormEntityLabel(stageDataElement), dataValue);
-                formEntityRadioButtons.setValue(dataValue.value(), false);
-                formEntityRadioButtons.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityRadioButtons;
+                break;
             }
             case TRUE_ONLY: {
-                FormEntityCheckBox formEntityCheckBox = new FormEntityCheckBox(
+                formEntity = new FormEntityCheckBox(
                         dataElement.uid(), getFormEntityLabel(stageDataElement), dataValue);
-                formEntityCheckBox.setValue(dataValue.value(), false);
-                formEntityCheckBox.setOnFormEntityChangeListener(onValueChangedListener);
-                return formEntityCheckBox;
+                break;
             }
-            default:
+            default: {
 //                logger.d(TAG, "Unsupported FormEntity type: " + dataElement.valueType());
 
                 FormEntityText formEntityText = new FormEntityText(dataElement.uid(),
@@ -354,6 +305,12 @@ public class FormUtils {
                         dataElement.valueType(), false);
 
                 return formEntityText;
+            }
         }
+
+        formEntity.setValue(dataValue.value(), false);
+        formEntity.setOnFormEntityChangeListener(onValueChangedListener);
+        formEntity.setMandatory(stageDataElement.compulsory());
+        return formEntity;
     }
 }
