@@ -6,5 +6,7 @@ import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import java.util.List;
 
 public interface TeiProfileView extends View {
-    void drawProfileItems(List<FormEntity> formEntities);
+    void update(List<FormEntity> formEntities);
+
+    void toggleLockStatus();
 }

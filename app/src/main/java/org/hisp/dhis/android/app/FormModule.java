@@ -81,30 +81,14 @@ public class FormModule {
 
     //TODO: Change naming
     @Provides
+    @PerActivity
     public TeiDashboardPresenter providesTeiDashboardPresenter(
             @Nullable FormSectionPresenter formSectionPresenter) {
         return new TeiDashboardPresenterImpl();
     }
 
     @Provides
-    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable EnrollmentInteractor enrollmentInteractor,
-                                                                 @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
-                                                                 @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
-                                                                 @Nullable ProgramInteractor programInteractor,
-                                                                 @Nullable Logger logger) {
-        return new TeiNavigationPresenterImpl(enrollmentInteractor, trackedEntityInstanceInteractor,
-                trackedEntityAttributeValueInteractor, programInteractor, logger);
-    }
-
-    @Provides
-    public TeiProgramStagePresenter providesTeiProgramStagePresenter(
-            @Nullable TeiDashboardPresenter teiDashboardPresenter,
-            @Nullable ProgramInteractor programInteractor,
-            @Nullable EventInteractor eventInteractor) {
-        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor);
-    }
-
-    @Provides
+    @PerActivity
     public TeiProfilePresenter providesTeiProfilePresenter(
             @Nullable ProgramInteractor programInteractor,
             @Nullable EnrollmentInteractor enrollmentInteractor,
@@ -116,6 +100,28 @@ public class FormModule {
     }
 
     @Provides
+    @PerActivity
+    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable EnrollmentInteractor enrollmentInteractor,
+                                                                 @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
+                                                                 @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
+                                                                 @Nullable ProgramInteractor programInteractor,
+                                                                 @Nullable Logger logger) {
+        return new TeiNavigationPresenterImpl(enrollmentInteractor, trackedEntityInstanceInteractor,
+                trackedEntityAttributeValueInteractor, programInteractor, logger);
+    }
+
+    @Provides
+    @PerActivity
+    public TeiProgramStagePresenter providesTeiProgramStagePresenter(
+            @Nullable TeiDashboardPresenter teiDashboardPresenter,
+            @Nullable ProgramInteractor programInteractor,
+            @Nullable EventInteractor eventInteractor) {
+        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor);
+    }
+
+
+    @Provides
+    @PerActivity
     public TeiWidgetPresenter providesTeiWidgetPresenter() {
         return new TeiWidgetPresenterImpl();
     }

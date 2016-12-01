@@ -1,5 +1,6 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
+import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
@@ -15,7 +16,6 @@ import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +36,7 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
     private static final String TAG = TeiNavigationPresenterImpl.class.getSimpleName();
     TeiNavigationView teiNavigationView;
     private CompositeSubscription subscription;
+    TeiProfilePresenter teiProfilePresenter;
 
     private final EnrollmentInteractor enrollmentInteractor;
     private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
@@ -120,6 +121,16 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
                 }));
 
 
+    }
+
+    @Override
+    public void onProfileClick() {
+        teiProfilePresenter.toggleLockStatus();
+    }
+
+    @Override
+    public void attachProfilePresenter(TeiProfilePresenter teiProfilePresenter) {
+        this.teiProfilePresenter = teiProfilePresenter;
     }
 
     private Observable<Enrollment> getEnrollment(final String enrollmentUid) {

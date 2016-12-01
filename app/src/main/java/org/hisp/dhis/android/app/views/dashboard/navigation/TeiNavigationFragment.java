@@ -25,6 +25,7 @@ import org.hisp.dhis.android.app.views.dashboard.TeiDashboardView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
+import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
 import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetFragment;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
 import org.hisp.dhis.client.sdk.ui.views.FontTextView;
@@ -45,6 +46,9 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
     @Inject
     TeiNavigationPresenter teiNavigationPresenter;
+
+    @Inject
+    TeiProfilePresenter teiProfilePresenter;
 
     private FontTextView firstAttribute, secondAttribute;
     private FloatingActionButton floatingActionButton;
@@ -84,6 +88,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             // in order to prevent unnecessary work which should be done
             // if case it will be i onResume()
             teiNavigationPresenter.attachView(this);
+            teiNavigationPresenter.attachProfilePresenter(teiProfilePresenter);
         } catch (Exception e) {
             Log.e(TAG, "Activity or Application is null. Vital resources have been killed.", e);
         }
@@ -135,14 +140,15 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                         break;
                     }
                     case VIEW_PAGER_ITEM_TEI_PROFILE: {
-                        Toast.makeText(v.getContext(), "Hello from Profile", Toast.LENGTH_LONG).show();
+                        teiNavigationPresenter.onProfileClick();
                         break;
                     }
                     case VIEW_PAGER_ITEM_WIDGETS: {
                         Toast.makeText(v.getContext(), "Hello from Widgets", Toast.LENGTH_LONG).show();
                         break;
                     }
-                    default:break;
+                    default:
+                        break;
                 }
             }
         });

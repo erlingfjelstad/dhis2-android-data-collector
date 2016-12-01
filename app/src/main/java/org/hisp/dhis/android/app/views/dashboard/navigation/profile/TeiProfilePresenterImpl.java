@@ -120,7 +120,7 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
                     @Override
                     public void call(List<FormEntity> formEntities) {
                         if (teiProfileView != null) {
-                            teiProfileView.drawProfileItems(formEntities);
+                            teiProfileView.update(formEntities);
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -131,6 +131,14 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
                 });
 
     }
+
+    @Override
+    public void toggleLockStatus() {
+        if(teiProfileView != null) {
+            teiProfileView.toggleLockStatus();
+        }
+    }
+
 
     private Observable<Enrollment> getEnrollment(final String enrollmentUid) {
         return Observable.just(enrollmentInteractor.store().query(enrollmentUid));
