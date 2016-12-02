@@ -135,7 +135,7 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         DividerDecoration itemDecoration = new DividerDecoration(
                 ContextCompat.getDrawable(getActivity(), R.drawable.divider));
 
-        recyclerView = (RecyclerView) view;
+        recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_data_entry);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(itemDecoration);
         recyclerView.setAdapter(rowViewAdapter);

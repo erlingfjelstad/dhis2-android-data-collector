@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/recyclerview_data_entry"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:paddingTop="@dimen/keyline_default" />
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+    <!-- todo The parent view needs to be able to take focus so that it is possible to lose focus on edit texts -->
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerview_data_entry"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="@dimen/keyline_default" />
+</RelativeLayout>

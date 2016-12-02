@@ -2,7 +2,10 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+    <!-- todo The parent view needs to be able to take focus so that it is possible to lose focus on edit texts -->
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview_tei_profile"
         android:layout_width="match_parent"
