@@ -205,6 +205,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                     if (programTrackedEntityAttribute.trackedEntityAttribute().optionSet() != null) {
                                         optionSet = optionSetInteractor.store().queryByUid(programTrackedEntityAttribute.trackedEntityAttribute().optionSet().uid());
                                     }
+
                                     formEntities.add(FormUtils.transformTrackedEntityAttribute(trackedEntityInstance.uid(), attributeValue, programTrackedEntityAttribute, optionSet, onValueChangedListener));
                                 }
 
@@ -296,6 +297,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                             if (programStageDataElement.dataElement().optionSet() != null) {
                                                 optionSet = optionSetInteractor.store().queryByUid(programStageDataElement.dataElement().optionSet().uid());
                                             }
+
                                             formEntities.add(FormUtils.transformDataElement(username, event, trackedEntityDataValue, programStageDataElement, optionSet, onValueChangedListener));
                                         }
 
@@ -356,6 +358,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                         for (ProgramStage stage : program.programStages()) {
                                             if (stage.uid().equals(programStageId)) {
                                                 currentProgramStage = stage;
+                                                break;
                                             }
                                         }
 
@@ -366,6 +369,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                         for (ProgramStageSection stageSection : currentProgramStage.programStageSections()) {
                                             if (stageSection.uid().equals(programStageSectionId)) {
                                                 currentProgramStageSection = stageSection;
+                                                break;
                                             }
                                         }
 
@@ -401,6 +405,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                             if (programStageDataElement.dataElement().optionSet() != null) {
                                                 optionSet = optionSetInteractor.store().queryByUid(programStageDataElement.dataElement().optionSet().uid());
                                             }
+
                                             formEntities.add(FormUtils.transformDataElement(username, event, trackedEntityDataValue, programStageDataElement, optionSet, onValueChangedListener));
                                         }
 
@@ -565,56 +570,10 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Boolean> onFormEntityAttributeChanged(FormEntity formEntity) {
-        return Observable.just(trackedEntityAttributeValueInteractor.store().save(mapFormEntityToAttributeValue(formEntity)));
+        return Observable.just(trackedEntityAttributeValueInteractor.store().save(FormUtils.mapFormEntityToAttributeValue(formEntity, logger, TAG)));
     }
 
-    private TrackedEntityAttributeValue mapFormEntityToAttributeValue(FormEntity entity) {
-        if (entity instanceof FormEntityFilter) {
-            Picker picker = ((FormEntityFilter) entity).getPicker();
 
-            String value = "";
-            if (picker != null && picker.getSelectedChild() != null) {
-                value = picker.getSelectedChild().getId();
-            }
-
-            TrackedEntityAttributeValue trackedEntityAttributeValue;
-            if (entity.getTag() != null) {
-                trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity.getTag();
-            } else {
-                throw new IllegalArgumentException("TrackedEntityAttributeValue must be " +
-                        "assigned to FormEntity upfront");
-            }
-
-            TrackedEntityAttributeValue.Builder trackedEntityAttributeValueBuilder = trackedEntityAttributeValue.toBuilder();
-            trackedEntityAttributeValueBuilder.state(State.TO_POST);
-            trackedEntityAttributeValueBuilder.value(value);
-            trackedEntityAttributeValue = trackedEntityAttributeValueBuilder.build();
-
-            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
-
-            return trackedEntityAttributeValue;
-        } else if (entity instanceof FormEntityCharSequence) {
-            String value = ((FormEntityCharSequence) entity).getValue().toString();
-
-            TrackedEntityAttributeValue trackedEntityAttributeValue;
-            if (entity.getTag() != null) {
-                trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity.getTag();
-            } else {
-                throw new IllegalArgumentException("TrackedEntityAttributeValue must be " +
-                        "assigned to FormEntity upfront");
-            }
-
-            TrackedEntityAttributeValue.Builder trackedEntityAttributeValueBuilder = trackedEntityAttributeValue.toBuilder();
-            trackedEntityAttributeValueBuilder.state(State.TO_POST);
-            trackedEntityAttributeValueBuilder.value(value);
-            trackedEntityAttributeValue = trackedEntityAttributeValueBuilder.build();
-            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
-
-            return trackedEntityAttributeValue;
-        }
-
-        return null;
-    }
 
     private TrackedEntityDataValue mapFormEntityToDataValue(FormEntity entity) {
         if (entity instanceof FormEntityFilter) {
@@ -656,7 +615,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             trackedEntityDataValueBuilder.state(State.TO_POST);
             trackedEntityDataValueBuilder.value(value);
             dataValue = trackedEntityDataValueBuilder.build();
-            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
+//            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
 
             return dataValue;
         }

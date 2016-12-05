@@ -7,6 +7,7 @@ import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
 import org.hisp.dhis.client.sdk.models.option.OptionSet;
 import org.hisp.dhis.client.sdk.models.program.Program;
@@ -16,15 +17,21 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.RxOnValueChangedListener;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
+import org.hisp.dhis.client.sdk.ui.models.FormEntityCharSequence;
+import org.hisp.dhis.client.sdk.ui.models.FormEntityFilter;
+import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -75,7 +82,7 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
 
         subscription = new CompositeSubscription();
 
-        Observable.zip(getEnrollment(enrollmentUid), getProgram(programUid),
+        subscription.add(Observable.zip(getEnrollment(enrollmentUid), getProgram(programUid),
                 new Func2<Enrollment, Program, List<FormEntity>>() {
 
                     @Override
@@ -128,7 +135,8 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, "Something went wrong during form construction", throwable);
                     }
-                });
+                }));
+        subscription.add(saveTrackedEntityAttributeValues());
 
     }
 
@@ -138,6 +146,43 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
             teiProfileView.toggleLockStatus();
         }
     }
+
+    //TODO: Reintroduce rxRulesEngine.notifyDataSetChanged
+    private Subscription saveTrackedEntityAttributeValues() {
+        return Observable.create(onValueChangedListener)
+                .debounce(512, TimeUnit.MILLISECONDS)
+                .switchMap(new Func1<FormEntity, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(FormEntity formEntity) {
+                        return onFormEntityAttributeChanged(formEntity);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean isSaved) {
+                        if (isSaved) {
+                            logger.d(TAG, "data value is saved successfully");
+
+                            // fire rule engine execution
+//                            rxRulesEngine.notifyDataSetChanged();
+                        } else {
+                            logger.d(TAG, "Failed to save value");
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Failed to save value", throwable);
+                    }
+                });
+    }
+
+    private Observable<Boolean> onFormEntityAttributeChanged(FormEntity formEntity) {
+        return Observable.just(trackedEntityAttributeValueInteractor.store().save(FormUtils.mapFormEntityToAttributeValue(formEntity, logger, TAG)));
+    }
+
 
 
     private Observable<Enrollment> getEnrollment(final String enrollmentUid) {

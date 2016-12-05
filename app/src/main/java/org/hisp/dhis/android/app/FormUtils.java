@@ -21,6 +21,7 @@ import org.hisp.dhis.client.sdk.ui.models.FormEntityFilter;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityRadioButtons;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
+import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.util.List;
 
@@ -307,5 +308,53 @@ public class FormUtils {
         formEntity.setOnFormEntityChangeListener(onValueChangedListener);
         formEntity.setMandatory(stageDataElement.compulsory());
         return formEntity;
+    }
+
+    public static TrackedEntityAttributeValue mapFormEntityToAttributeValue(FormEntity entity, Logger logger, String TAG) {
+        if (entity instanceof FormEntityFilter) {
+            Picker picker = ((FormEntityFilter) entity).getPicker();
+
+            String value = "";
+            if (picker != null && picker.getSelectedChild() != null) {
+                value = picker.getSelectedChild().getId();
+            }
+
+            TrackedEntityAttributeValue trackedEntityAttributeValue;
+            if (entity.getTag() != null) {
+                trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity.getTag();
+            } else {
+                throw new IllegalArgumentException("TrackedEntityAttributeValue must be " +
+                        "assigned to FormEntity upfront");
+            }
+
+            TrackedEntityAttributeValue.Builder trackedEntityAttributeValueBuilder = trackedEntityAttributeValue.toBuilder();
+            trackedEntityAttributeValueBuilder.state(State.TO_POST);
+            trackedEntityAttributeValueBuilder.value(value);
+            trackedEntityAttributeValue = trackedEntityAttributeValueBuilder.build();
+
+            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
+
+            return trackedEntityAttributeValue;
+        } else if (entity instanceof FormEntityCharSequence) {
+            String value = ((FormEntityCharSequence) entity).getValue().toString();
+
+            TrackedEntityAttributeValue trackedEntityAttributeValue;
+            if (entity.getTag() != null) {
+                trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity.getTag();
+            } else {
+                throw new IllegalArgumentException("TrackedEntityAttributeValue must be " +
+                        "assigned to FormEntity upfront");
+            }
+
+            TrackedEntityAttributeValue.Builder trackedEntityAttributeValueBuilder = trackedEntityAttributeValue.toBuilder();
+            trackedEntityAttributeValueBuilder.state(State.TO_POST);
+            trackedEntityAttributeValueBuilder.value(value);
+            trackedEntityAttributeValue = trackedEntityAttributeValueBuilder.build();
+            logger.d(TAG, "New value " + value + " is emitted for " + entity.getLabel());
+
+            return trackedEntityAttributeValue;
+        }
+
+        return null;
     }
 }
