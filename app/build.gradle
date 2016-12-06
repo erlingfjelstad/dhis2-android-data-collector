@@ -32,9 +32,9 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "SERVER_URL", '"https://play.dhis2.org/demo"'
-            buildConfigField "String", "USERNAME", '"admin"'
-            buildConfigField "String", "PASSWORD", '"district"'
+            buildConfigField "String", "SERVER_URL", '"https://play.dhis2.org/dev"'
+            buildConfigField "String", "USERNAME", '"android"'
+            buildConfigField "String", "PASSWORD", '"Android123"'
 
             // reading fabric.properties file from current directory
             Properties properties = new Properties()

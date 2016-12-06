@@ -24,6 +24,8 @@
             android:theme="@style/AppTheme.Main" />
 
         <activity android:name=".views.FormSectionActivity"/>
+        <activity android:name=".views.LoginActivity"/>
+        <activity android:name=".views.synchronization.SynchronizationActivity"/>
 
         <activity
             android:name=".views.dashboard.TeiDashboardActivity"

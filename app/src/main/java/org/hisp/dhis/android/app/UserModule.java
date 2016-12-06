@@ -34,6 +34,8 @@ import android.content.Context;
 import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
 import org.hisp.dhis.android.app.presenters.SelectorPresenterImpl;
+import org.hisp.dhis.android.app.views.synchronization.SynchronizationPresenter;
+import org.hisp.dhis.android.app.views.synchronization.SynchronizationPresenterImpl;
 import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
@@ -250,8 +252,14 @@ public final class UserModule {
 
     @Provides
     @PerUser
-    public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
+    public SelectorPresenter selectorPresenter(SyncWrapper syncWrapper, ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
         return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.enrollments(), sdkInstance.trackedEntityInstances(), sdkInstance.trackedEntityDataValues(),
-                sdkInstance.trackedEntityAttributeValues(), sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
+                sdkInstance.trackedEntityAttributeValues(), sessionPreferences, syncWrapper, apiExceptionHandler, logger);
+    }
+
+    @Provides
+    @PerUser
+    public SynchronizationPresenter synchronizationPresenter(SyncWrapper syncWrapper,ApiExceptionHandler apiExceptionHandler, Logger logger) {
+        return new SynchronizationPresenterImpl(syncWrapper, apiExceptionHandler, logger);
     }
 }
