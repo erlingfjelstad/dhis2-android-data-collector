@@ -1,6 +1,7 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -10,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,52 +20,55 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.DataEntryFragment;
-import org.hisp.dhis.android.app.views.DataEntryView;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardView;
+import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerController;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
-import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageView;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.create.CreateEventActivity;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
-import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
 import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetFragment;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
 import org.hisp.dhis.client.sdk.ui.views.FontTextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import static android.app.Activity.RESULT_OK;
+import static org.hisp.dhis.android.app.views.dashboard.navigation.event.create.CreateEventActivity.CREATE_EVENT_REQUEST_CODE;
 import static org.hisp.dhis.client.sdk.ui.AnimationUtils.playFabShrinkPopAnimation;
 
 public class TeiNavigationFragment extends Fragment implements TeiNavigationView {
+
     private static final String ARG_ITEM_UID = "arg:itemUid";
     private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String TAG = TeiNavigationFragment.class.getSimpleName();
     private static final int VIEW_PAGER_ITEM_PROGRAM_STAGES = 0;
     private static final int VIEW_PAGER_ITEM_TEI_PROFILE = 1;
     private static final int VIEW_PAGER_ITEM_WIDGETS = 2;
+    private static final String ARG_TWO_PANE_LAYOUT = "arg:twoPaneLayout";
 
     @Inject
     TeiNavigationPresenter teiNavigationPresenter;
 
     @Inject
-    TeiProfilePresenter teiProfilePresenter;
+    RightNavDrawerController rightNavDrawerController;
 
     private FontTextView firstAttribute, secondAttribute;
     private FloatingActionButton floatingActionButton;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    private ArrayList<FormEntityText> appBarTeiIdentifiableFormEntities;
 
     public TeiNavigationFragment() {
         // Required empty public constructor
     }
 
-    public static TeiNavigationFragment newInstance(String itemUid, String programUid) {
+    public static TeiNavigationFragment newInstance(String itemUid, String programUid, boolean twoPaneLayout) {
         TeiNavigationFragment fragment = new TeiNavigationFragment();
         Bundle arguments = new Bundle();
         arguments.putString(ARG_ITEM_UID, itemUid);
         arguments.putString(ARG_PROGRAM_UID, programUid);
+        arguments.putBoolean(ARG_TWO_PANE_LAYOUT, twoPaneLayout);
 
         fragment.setArguments(arguments);
         return fragment;
@@ -88,10 +93,10 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             // in order to prevent unnecessary work which should be done
             // if case it will be i onResume()
             teiNavigationPresenter.attachView(this);
-            teiNavigationPresenter.attachProfilePresenter(teiProfilePresenter);
         } catch (Exception e) {
             Log.e(TAG, "Activity or Application is null. Vital resources have been killed.", e);
         }
+
     }
 
     @Override
@@ -121,6 +126,22 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 viewPager.setCurrentItem(VIEW_PAGER_ITEM_TEI_PROFILE, true);
             }
         });
+
+        if (!useTwoPaneLayout()) {
+            ((Toolbar) view.findViewById(R.id.toolbar)).setNavigationIcon(R.drawable.ic_arrow_forward);
+            ((Toolbar) view.findViewById(R.id.toolbar)).
+                    setNavigationOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            rightNavDrawerController.hideMenu();
+                        }
+                    });
+
+        }
+    }
+
+    private boolean useTwoPaneLayout() {
+        return getArguments() != null && getArguments().getBoolean(ARG_TWO_PANE_LAYOUT);
     }
 
     /**
@@ -136,7 +157,11 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             public void onClick(View v) {
                 switch (viewPager.getCurrentItem()) {
                     case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
-                        Toast.makeText(v.getContext(), "Hello from Stages", Toast.LENGTH_LONG).show();
+                        //startActivityForResult();
+                        CreateEventActivity.navigateTo(TeiNavigationFragment.this,
+                                getProgramUid(),
+                                getItemUid(),
+                                appBarTeiIdentifiableFormEntities);
                         break;
                     }
                     case VIEW_PAGER_ITEM_TEI_PROFILE: {
@@ -152,7 +177,28 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 }
             }
         });
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CREATE_EVENT_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                if (data.getIntExtra(CreateEventActivity.ARG_EVENT_TYPE, -1) == CreateEventActivity.EVENT_TYPE_SCHEDULED) {
+                    // refresh list of Events? This should happen automagically if the presenter is subscribing to db update events
+                }
+                if (data.getIntExtra(CreateEventActivity.ARG_EVENT_TYPE, -1) == CreateEventActivity.EVENT_TYPE_ACTIVE) {
+
+                    String programUid = data.getStringExtra(CreateEventActivity.ARG_PROGRAM_UID);
+                    String programStageUid = data.getStringExtra(CreateEventActivity.ARG_PROGRAM_STAGE_UID);
+                    String orgUnitUid = data.getStringExtra(CreateEventActivity.ARG_ORG_UNIT_UID);
+                    String enrollmentUid = data.getStringExtra(CreateEventActivity.ARG_ENROLLMENT_UID);
+
+                    teiNavigationPresenter.createNewEvent(programUid, programStageUid, orgUnitUid, enrollmentUid);
+                }
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     private void initViewPager(View view) {
@@ -204,16 +250,25 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     //TODO: Fix this hack and maybe move to recyclerView
     @Override
     public void populateAppBar(List<FormEntityText> formEntities) {
+        storeIdentifiableFormEntities(formEntities);
         if (formEntities.size() > 1) {
             FormEntityText formEntityText1 = formEntities.get(0);
             FormEntityText formEntityText2 = formEntities.get(1);
-            String displayText1 = formEntityText1.getId() + ": " + formEntityText1.getLabel();
-            String displayText2 = formEntityText2.getId() + ": " + formEntityText2.getLabel();
+            String displayText1 = formEntityText1.getLabel() + ": " + formEntityText1.getValue();
+            String displayText2 = formEntityText2.getLabel() + ": " + formEntityText2.getValue();
             firstAttribute.setText(displayText1);
             secondAttribute.setText(displayText2);
         }
     }
 
+    private void storeIdentifiableFormEntities(List<FormEntityText> formEntities) {
+        if (appBarTeiIdentifiableFormEntities == null) {
+            appBarTeiIdentifiableFormEntities = new ArrayList<>();
+        } else {
+            appBarTeiIdentifiableFormEntities.clear();
+        }
+        appBarTeiIdentifiableFormEntities.addAll(formEntities);
+    }
 
     private class DashboardPageAdapter extends FragmentPagerAdapter {
 

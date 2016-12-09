@@ -8,6 +8,7 @@ import org.hisp.dhis.android.app.views.FormSectionView;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
@@ -16,13 +17,16 @@ import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
 import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
+import org.hisp.dhis.client.sdk.utils.CodeGenerator;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -95,21 +99,23 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     @Override
-    public void createDataEntryForm(final String itemUid, String programUid, String programStageUid) {
+    public void showDataEntryForm(final String eventUid, String programUid, String programStageUid) {
+        if (formSectionView != null) {
+            formSectionView.setEventUid(eventUid);
+        }
         Program program = getProgram(programUid).toBlocking().first();
         if (program != null && program.programType() != null) {
             switch (program.programType()) {
                 case WITH_REGISTRATION: {
                     if (programStageUid == null) {
-                        createEnrollmentDataEntryForm(itemUid);
-                    }
-                    else {
-                        createEventDataEntryForm(itemUid);
+                        createEnrollmentDataEntryForm(eventUid, programStageUid);
+                    } else {
+                        createEventDataEntryForm(eventUid, programUid, programStageUid);
                     }
                 }
                 break;
                 case WITHOUT_REGISTRATION: {
-                    createEventDataEntryForm(itemUid);
+                    createEventDataEntryForm(eventUid, programUid, programStageUid);
                     break;
                 }
                 default:
@@ -118,7 +124,36 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
         }
     }
 
-    private void createEventDataEntryForm(final String eventUid) {
+    @Override
+    public void createNewEvent(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid) {
+
+        String trackedEntityInstance = enrollmentInteractor.store().query(enrollmentUid).trackedEntityInstance();
+
+        Event.Builder builder = Event.builder()
+                .uid(CodeGenerator.generateCode())
+                .created(Calendar.getInstance().getTime())
+                .state(State.TO_POST)
+                .organisationUnit(orgUnitUid)
+                .trackedEntityInstance(trackedEntityInstance)
+                .enrollmentUid(enrollmentUid)
+                .program(programUid)
+                .programStage(programStageUid)
+                .status(EventStatus.ACTIVE);
+
+        Date eventDate = Calendar.getInstance().getTime();
+        builder.eventDate(eventDate);
+
+        Event event = builder.build();
+
+        eventInteractor.store().save(event);
+
+        showDataEntryForm(event.uid(), programUid, programStageUid);
+    }
+
+    private void createEventDataEntryForm(final String eventUid, final String programUid, final String programStageUid) {
+        if (formSectionView != null) {
+            formSectionView.setEventUid(eventUid);
+        }
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -150,9 +185,19 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                             formSectionView.showEventStatus(event.status());
                         }
 
+                        List<ProgramStage> programStages = programInteractor.store().queryByUid(programUid).programStages();
+                        for (ProgramStage programStage : programStages) {
+                            if (programStage.uid().equals(programStageUid)) {
+                                if (formSectionView != null) {
+                                    formSectionView.showFormTitle(programStage.displayName());
+                                }
+                                break;
+                            }
+                        }
+
                         // fire next operations
                         subscription.add(showFormPickers(event));
-                        subscription.add(showFormSections(event.program()));
+                        subscription.add(showFormSections(event.program(), programStageUid));
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -162,7 +207,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                 }));
     }
 
-    private void createEnrollmentDataEntryForm(final String enrollmentUid) {
+    private void createEnrollmentDataEntryForm(final String enrollmentUid, final String programStageUid) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -196,7 +241,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                         // fire next operations
                         subscription.add(showFormPickers(enrollment));
-                        subscription.add(showFormSections(enrollment.program()));
+                        subscription.add(showFormSections(enrollment.program(), programStageUid));
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -364,6 +409,16 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
         locationProvider.stopUpdates();
     }
 
+    @Override
+    public List<FormEntity> getInvalidFormEntities() {
+        return formSectionView.getInvalidFormEntities();
+    }
+
+    @Override
+    public void showMenu() {
+
+    }
+
     private Subscription saveEvent(final Event event) {
         return storeEvent(event)
                 .subscribeOn(Schedulers.io())
@@ -474,10 +529,9 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                             ProgramStage currentProgramStage = null;
                             if (ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
                                 currentProgramStage = program.programStages().get(0);
-                            }
-                            else { // program is with registration, we need to loop through all stages and find matching uid
+                            } else { // program is with registration, we need to loop through all stages and find matching uid
                                 for (ProgramStage programStage : program.programStages()) {
-                                    if(event.programStage().equals(programStage.uid())) {
+                                    if (event.programStage().equals(programStage.uid())) {
                                         currentProgramStage = programStage;
                                         break;
                                     }
@@ -519,7 +573,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                 });
     }
 
-    private Subscription showFormSections(final String programUid) {
+    private Subscription showFormSections(final String programUid, final String programStageUid) {
 
         return getProgram(programUid)
                 .map(new Func1<Program, AbstractMap.SimpleEntry<Picker, List<FormSection>>>() {
@@ -579,9 +633,9 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(AbstractMap.SimpleEntry<Picker, List<FormSection>> results) {
                         if (results != null && formSectionView != null) {
                             if (results.getValue() == null || results.getValue().isEmpty()) {
-                                formSectionView.showFormDefaultSection(results.getKey().getId());
+                                formSectionView.showFormDefaultSection(results.getKey().getId(), programUid, programStageUid);
                             } else {
-                                formSectionView.showFormSections(results.getValue());
+                                formSectionView.showFormSections(results.getValue(), programUid, programStageUid);
                                 formSectionView.setFormSectionsPicker(results.getKey());
                             }
                         }

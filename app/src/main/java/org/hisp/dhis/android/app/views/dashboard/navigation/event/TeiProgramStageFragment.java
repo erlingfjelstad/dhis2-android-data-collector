@@ -14,7 +14,6 @@ import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.FormSectionActivity;
 import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.dashboard.navigation.AbsTeiNavigationSectionFragment;
 import org.hisp.dhis.client.sdk.ui.activities.ReportEntitySelection;
@@ -93,7 +92,7 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
 
     @Override
     public void navigateToFormSection(String itemUid, String programUid, String programStageUid) {
-        FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, FormSectionContextType.REPORT);
+        teiProgramStagePresenter.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, FormSectionContextType.REPORT);
     }
 
     @Override

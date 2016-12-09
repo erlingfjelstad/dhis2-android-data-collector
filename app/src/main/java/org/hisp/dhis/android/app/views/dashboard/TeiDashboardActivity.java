@@ -3,12 +3,14 @@ package org.hisp.dhis.android.app.views.dashboard;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 
 import org.hisp.dhis.android.app.FormComponent;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.dashboard.dataentry.FormSectionFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationFragment;
 import org.hisp.dhis.client.sdk.ui.activities.ReportEntitySelection;
 
@@ -25,7 +27,7 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
 
     private String selectedUid;
 
-    private FloatingActionButton floatingActionButton;
+    private DrawerLayout drawerLayout;
 
 
     public static void navigateTo(Activity activity, String itemUid, String programUid) {
@@ -42,17 +44,30 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        teiDashboardPresenter.detachView();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tei_dashboard);
 
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.frame_tei_dashboard, TeiNavigationFragment.newInstance(getItemUid(), getProgramUid()))
+                .replace(R.id.data_entry_pane, FormSectionFragment.newInstance(useTwoPaneLayout()))
+                .commit();
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.navigation_view, TeiNavigationFragment.newInstance(getItemUid(), getProgramUid(), useTwoPaneLayout()))
                 .commit();
 
         // if using two-pane layout (tablets in landscape mode), drawerLayout will be null
-//        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         FormComponent formComponent = ((SkeletonApp) getApplication()).getFormComponent();
 
@@ -72,42 +87,35 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         // inject dependencies
         formComponent.inject(this);
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         teiDashboardPresenter.attachView(this);
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        teiDashboardPresenter.detachView();
+        // Drawer is open by default
+        openDrawer();
     }
 
     private boolean useTwoPaneLayout() {
-        return getResources().getBoolean(R.bool.use_two_pane_layout);
+        return drawerLayout == null;
+        //return getResources().getBoolean(R.bool.use_two_pane_layout);
     }
 
     @Override
     public void closeDrawer() {
-//        if (drawerLayout != null) {
-//            drawerLayout.closeDrawers();
-//        }
+        if (drawerLayout != null) {
+            drawerLayout.closeDrawers();
+        }
     }
 
     @Override
     public void openDrawer() {
-//        if (drawerLayout != null) {
-//            drawerLayout.openDrawer(GravityCompat.END);
-//        }
+        if (drawerLayout != null) {
+            drawerLayout.openDrawer(GravityCompat.END);
+        }
     }
 
     @Override
     public void setSelectedUid(String uid) {
         selectedUid = uid;
-//        closeDrawer();
+        closeDrawer();
     }
 
     @Override

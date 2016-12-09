@@ -20,11 +20,10 @@ import org.hisp.dhis.client.sdk.ui.models.FormEntityAction;
 import org.hisp.dhis.client.sdk.ui.rows.RowViewAdapter;
 import org.hisp.dhis.client.sdk.ui.views.DividerDecoration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-
-import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 public class DataEntryFragment extends BaseFragment implements DataEntryView {
     private static final String ARG_EVENT_ID = "arg:eventId";
@@ -54,9 +53,9 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         return dataEntryFragment;
     }
 
-    public static DataEntryFragment newInstanceForItem( @NonNull String itemId,
-                                                        @NonNull String programId,
-                                                        @NonNull String programStageId) {
+    public static DataEntryFragment newInstanceForItem(@NonNull String itemId,
+                                                       @NonNull String programId,
+                                                       @NonNull String programStageId) {
         Bundle arguments = new Bundle();
         arguments.putString(ARG_ITEM_ID, itemId);
         arguments.putString(ARG_PROGRAM_ID, programId);
@@ -160,7 +159,7 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
 //        }
 //        else {
 //            //TEMPORARY ELSE CLAUSE:
-//            dataEntryPresenter.createDataEntryForm(getItemId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
+//            dataEntryPresenter.showDataEntryForm(getItemId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
 //        }
 
 
@@ -180,5 +179,11 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
     @Override
     public void updateDataEntryForm(List<FormEntityAction> formEntityActions) {
         rowViewAdapter.update(formEntityActions);
+    }
+
+    @Override
+    public List<FormEntity> getInvalidFormEntities() {
+        return new ArrayList<FormEntity>();
+//        return FormUtils.getInvalidFormEntities(rowViewAdapter.getItems());
     }
 }

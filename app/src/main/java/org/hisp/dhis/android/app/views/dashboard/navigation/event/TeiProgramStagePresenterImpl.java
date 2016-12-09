@@ -1,5 +1,8 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation.event;
 
+import android.support.v4.app.FragmentActivity;
+
+import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
@@ -27,7 +30,6 @@ import java.util.Map;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -79,6 +81,11 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         }
                     }
                 }));
+    }
+
+    @Override
+    public void navigateToExistingItem(FragmentActivity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType report) {
+        teiDashboardPresenter.navigateToExistingItem(itemUid, programUid, programStageUid);
     }
 
     @Override

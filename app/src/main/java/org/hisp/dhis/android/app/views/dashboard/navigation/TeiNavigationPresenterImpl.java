@@ -1,5 +1,6 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
+import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
@@ -34,20 +35,26 @@ import rx.subscriptions.CompositeSubscription;
 public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
 
     private static final String TAG = TeiNavigationPresenterImpl.class.getSimpleName();
-    TeiNavigationView teiNavigationView;
-    private CompositeSubscription subscription;
-    TeiProfilePresenter teiProfilePresenter;
 
+    private TeiNavigationView teiNavigationView;
+    private CompositeSubscription subscription;
+
+    private final TeiDashboardPresenter teiDashboardPresenter;
+    private final TeiProfilePresenter teiProfilePresenter;
     private final EnrollmentInteractor enrollmentInteractor;
     private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
     private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
     private final ProgramInteractor programInteractor;
     private final Logger logger;
 
-    public TeiNavigationPresenterImpl(EnrollmentInteractor enrollmentInteractor,
+    public TeiNavigationPresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
+                                      TeiProfilePresenter teiProfilePresenter,
+                                      EnrollmentInteractor enrollmentInteractor,
                                       TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
                                       TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
                                       ProgramInteractor programInteractor, Logger logger) {
+        this.teiDashboardPresenter = teiDashboardPresenter;
+        this.teiProfilePresenter = teiProfilePresenter;
         this.enrollmentInteractor = enrollmentInteractor;
         this.trackedEntityInstanceInteractor = trackedEntityInstanceInteractor;
         this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
@@ -95,7 +102,8 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
                                 if (trackedEntityAttributeMap.containsKey(trackedEntityAttributeValue.trackedEntityAttributeUid())) {
                                     TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeMap.get(trackedEntityAttributeValue.trackedEntityAttributeUid());
                                     if (trackedEntityAttribute.displayName() != null) {
-                                        FormEntityText formEntityText = new FormEntityText(trackedEntityAttribute.displayName(), trackedEntityAttributeValue.value());
+                                        FormEntityText formEntityText = new FormEntityText(trackedEntityAttribute.uid(), trackedEntityAttribute.displayName());
+                                        formEntityText.setValue(trackedEntityAttributeValue.value(), false);
                                         formEntities.add(formEntityText);
                                     }
                                 }
@@ -129,8 +137,13 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
     }
 
     @Override
-    public void attachProfilePresenter(TeiProfilePresenter teiProfilePresenter) {
-        this.teiProfilePresenter = teiProfilePresenter;
+    public void showDataEntry(String eventUid, String programUid, String programStageUid) {
+        teiDashboardPresenter.navigateToExistingItem(eventUid, programUid, programStageUid);
+    }
+
+    @Override
+    public void createNewEvent(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid) {
+        teiDashboardPresenter.navigateToNewItem(programUid, programStageUid, orgUnitUid, enrollmentUid);
     }
 
     private Observable<Enrollment> getEnrollment(final String enrollmentUid) {

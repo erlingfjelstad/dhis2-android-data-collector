@@ -7,6 +7,8 @@ import org.hisp.dhis.android.app.presenters.DataEntryPresenter;
 import org.hisp.dhis.android.app.presenters.DataEntryPresenterImpl;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerController;
+import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerControllerImpl;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenterImpl;
 import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationPresenter;
@@ -35,6 +37,13 @@ public class FormModule {
 
     public FormModule() {
         // explicit empty constructor
+    }
+
+    @Provides
+    @PerActivity
+    public RightNavDrawerController providesRightNavDrawerController(
+            @Nullable TeiDashboardPresenter teiDashboardPresenter) {
+        return new RightNavDrawerControllerImpl(teiDashboardPresenter);
     }
 
     @Provides
@@ -84,7 +93,7 @@ public class FormModule {
     @PerActivity
     public TeiDashboardPresenter providesTeiDashboardPresenter(
             @Nullable FormSectionPresenter formSectionPresenter) {
-        return new TeiDashboardPresenterImpl();
+        return new TeiDashboardPresenterImpl(formSectionPresenter);
     }
 
     @Provides
@@ -101,13 +110,20 @@ public class FormModule {
 
     @Provides
     @PerActivity
-    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable EnrollmentInteractor enrollmentInteractor,
+    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable TeiDashboardPresenter teiDashboardPresenter,
+                                                                 @Nullable TeiProfilePresenter teiProfilePresenter,
+                                                                 @Nullable EnrollmentInteractor enrollmentInteractor,
                                                                  @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
                                                                  @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
                                                                  @Nullable ProgramInteractor programInteractor,
                                                                  @Nullable Logger logger) {
-        return new TeiNavigationPresenterImpl(enrollmentInteractor, trackedEntityInstanceInteractor,
-                trackedEntityAttributeValueInteractor, programInteractor, logger);
+        return new TeiNavigationPresenterImpl(teiDashboardPresenter,
+                teiProfilePresenter,
+                enrollmentInteractor,
+                trackedEntityInstanceInteractor,
+                trackedEntityAttributeValueInteractor,
+                programInteractor,
+                logger);
     }
 
     @Provides

@@ -1,6 +1,7 @@
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout android:id="@+id/coordinatorlayout_form"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/coordinatorlayout_form"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -31,6 +32,7 @@
                     android:layout_marginRight="8dp"
                     android:orientation="vertical">
 
+
                     <org.hisp.dhis.client.sdk.ui.views.FontTextView
                         android:id="@+id/textview_report_date"
                         android:layout_width="match_parent"
@@ -42,7 +44,7 @@
                         android:hint="@string/choose_report_date"
                         android:padding="8dp"
                         android:textSize="@dimen/text_size_medium"
-                        app:font="@string/font_name_light" />
+                        app:font="@string/font_name_light"/>
 
                     <LinearLayout
                         android:id="@+id/linearlayout_coordinates"
@@ -59,14 +61,16 @@
                             android:layout_marginRight="2dp"
                             android:background="@drawable/button_selector_blue"
                             android:clickable="true"
-                            android:padding="4dp">
+                            android:padding="4dp"
+                            >
 
                             <android.support.v7.widget.AppCompatImageView
                                 android:id="@+id/imagevew_location"
                                 android:layout_width="24dp"
                                 android:layout_height="match_parent"
                                 android:layout_gravity="center"
-                                android:src="@drawable/ic_my_location" />
+                                android:src="@drawable/ic_my_location"
+                                />
 
                             <android.support.v7.widget.AppCompatImageView
                                 android:id="@+id/imagevew_location_cancel"
@@ -75,7 +79,8 @@
                                 android:layout_gravity="center"
                                 android:padding="5dp"
                                 android:src="@drawable/ic_cancel_white"
-                                android:visibility="gone" />
+                                android:visibility="gone"
+                                />
 
                             <fr.castorflex.android.circularprogressbar.CircularProgressBar
                                 android:id="@+id/progress_bar_circular_location"
@@ -88,7 +93,8 @@
                                 app:cpb_max_sweep_angle="333"
                                 app:cpb_rotation_speed="0.66"
                                 app:cpb_stroke_width="2dp"
-                                app:cpb_sweep_speed="0.66" />
+                                app:cpb_sweep_speed="0.66"
+                                />
                         </FrameLayout>
 
                         <org.hisp.dhis.client.sdk.ui.views.FontEditText
@@ -101,12 +107,12 @@
                             android:layout_marginStart="2dp"
                             android:layout_weight="0.5"
                             android:background="@color/color_primary_light"
-                            android:enabled="false"
                             android:hint="@string/latitude"
                             android:padding="8dp"
-                            android:singleLine="true"
                             android:textSize="@dimen/text_size_medium"
-                            app:font="@string/font_name_light" />
+                            app:font="@string/font_name_light"
+                            android:enabled="false"
+                            android:singleLine="true"/>
 
                         <org.hisp.dhis.client.sdk.ui.views.FontEditText
                             android:id="@+id/edittext_longitude"
@@ -116,12 +122,12 @@
                             android:layout_marginStart="2dp"
                             android:layout_weight="0.5"
                             android:background="@color/color_primary_light"
-                            android:enabled="false"
                             android:hint="@string/longitude"
                             android:padding="8dp"
-                            android:singleLine="true"
                             android:textSize="@dimen/text_size_medium"
-                            app:font="@string/font_name_light" />
+                            app:font="@string/font_name_light"
+                            android:enabled="false"
+                            android:singleLine="true"/>
 
                     </LinearLayout>
 
@@ -130,14 +136,14 @@
             </LinearLayout>
 
             <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar_data_entry"
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:titleTextColor="@android:color/white" />
+                app:titleTextColor="@android:color/white"/>
 
         </android.support.design.widget.CollapsingToolbarLayout>
 
@@ -145,7 +151,7 @@
             android:id="@+id/tablayout_data_entry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabMode="scrollable" />
+            app:tabMode="scrollable"/>
 
     </android.support.design.widget.AppBarLayout>
 
@@ -153,17 +159,17 @@
         android:id="@+id/viewpager_dataentry"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_complete_event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/keyline_default"
-        android:src="@drawable/ic_save"
+        android:src="@drawable/ic_complete"
         app:backgroundTint="@color/statelist_complete_button"
         app:elevation="8dp"
         app:layout_anchor="@id/viewpager_dataentry"
         app:layout_anchorGravity="bottom|right|end"
-        app:pressedTranslationZ="8dp" />
+        app:pressedTranslationZ="8dp"/>
 </android.support.design.widget.CoordinatorLayout>

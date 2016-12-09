@@ -11,20 +11,41 @@ public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
 
     FormSectionPresenter formSectionPresenter;
 
-
-    public TeiDashboardPresenterImpl() {
+    public TeiDashboardPresenterImpl(FormSectionPresenter formSectionPresenter) {
+        this.formSectionPresenter = formSectionPresenter;
     }
 
     @Override
     public void hideMenu() {
-        dashBoardView.closeDrawer();
+        if (dashBoardView != null) {
+            dashBoardView.closeDrawer();
+        }
+    }
+
+    @Override
+    public void showMenu() {
+        if (dashBoardView != null) {
+            dashBoardView.openDrawer();
+        }
     }
 
     @Override
     public void showDataEntryForEvent(String eventUid) {
-        formSectionPresenter.createDataEntryForm(eventUid, "", "");
+        hideMenu();
+        formSectionPresenter.showDataEntryForm(eventUid, "", "");
     }
 
+    @Override
+    public void navigateToExistingItem(String eventUid, String programUid, String programStageUid) {
+        hideMenu();
+        formSectionPresenter.showDataEntryForm(eventUid, programUid, programStageUid);
+    }
+
+    @Override
+    public void navigateToNewItem(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid) {
+        hideMenu();
+        formSectionPresenter.createNewEvent(programUid, programStageUid, orgUnitUid, enrollmentUid);
+    }
 
     @Override
     public void attachView(View view) {

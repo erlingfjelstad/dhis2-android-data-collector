@@ -34,6 +34,8 @@ import android.content.Context;
 import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
 import org.hisp.dhis.android.app.presenters.SelectorPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.create.CreateEventPresenter;
+import org.hisp.dhis.android.app.views.dashboard.navigation.event.create.CreateEventPresenterImpl;
 import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
@@ -253,5 +255,16 @@ public final class UserModule {
     public SelectorPresenter selectorPresenter(ApiExceptionHandler apiExceptionHandler, SessionPreferences sessionPreferences, Logger logger) {
         return new SelectorPresenterImpl(sdkInstance.organisationUnits(), sdkInstance.programs(), sdkInstance.events(), sdkInstance.enrollments(), sdkInstance.trackedEntityInstances(), sdkInstance.trackedEntityDataValues(),
                 sdkInstance.trackedEntityAttributeValues(), sessionPreferences, syncWrapper(), apiExceptionHandler, logger);
+    }
+
+    @Provides
+    @PerUser
+    public CreateEventPresenter createEventPresenter(SessionPreferences sessionPreferences, Logger logger) {
+        return new CreateEventPresenterImpl(sdkInstance.trackedEntityInstances(),
+                sdkInstance.organisationUnits(),
+                sdkInstance.programs(),
+                sdkInstance.enrollments(),
+                sdkInstance.events(),
+                sessionPreferences);
     }
 }

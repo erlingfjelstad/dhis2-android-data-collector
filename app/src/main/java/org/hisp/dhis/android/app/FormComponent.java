@@ -3,6 +3,7 @@ package org.hisp.dhis.android.app;
 import org.hisp.dhis.android.app.views.DataEntryFragment;
 import org.hisp.dhis.android.app.views.FormSectionActivity;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.dashboard.dataentry.FormSectionFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
@@ -22,11 +23,13 @@ public interface FormComponent {
     // Injection targets
     //------------------------------------------------------------------------
 
+    void inject(TeiDashboardActivity teiDashboardActivity);
+
     void inject(FormSectionActivity formSectionActivity);
 
-    void inject(DataEntryFragment dataEntryFragment);
+    void inject(FormSectionFragment formSectionFragment);
 
-    void inject(TeiDashboardActivity teiDashboardActivity);
+    void inject(DataEntryFragment dataEntryFragment);
 
     void inject(TeiProgramStageFragment teiProgramStageFragment);
 

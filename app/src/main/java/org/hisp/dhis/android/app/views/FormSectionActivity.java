@@ -49,6 +49,7 @@ import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
+import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.utils.LocaleUtils;
@@ -205,7 +206,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         formComponent.inject(this);
 
         // start building the form
-        formSectionPresenter.createDataEntryForm(getItemUid(), getProgramUid(), getProgramStageUid());
+        formSectionPresenter.showDataEntryForm(getItemUid(), getProgramUid(), getProgramStageUid());
 
         setupLocationPermissions();
     }
@@ -315,7 +316,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     @Override
-    public void showFormDefaultSection(String formSectionId) {
+    public void showFormDefaultSection(String formSectionId, String programUid, String programStageUid) {
         FormSingleSectionAdapter viewPagerAdapter =
                 new FormSingleSectionAdapter(getSupportFragmentManager());
         viewPagerAdapter.swapData(getItemUid(), getProgramUid(), getProgramStageUid(), formSectionId);
@@ -335,7 +336,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     @Override
-    public void showFormSections(List<FormSection> formSections) {
+    public void showFormSections(List<FormSection> formSections, String programUid, String programStageUid) {
         FormSectionsAdapter viewPagerAdapter =
                 new FormSectionsAdapter(getSupportFragmentManager());
         viewPagerAdapter.swapData(getItemUid(), getProgramUid(), getProgramStageUid(), formSections);
@@ -387,6 +388,11 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     @Override
+    public void showFormTitle(String formTitle) {
+
+    }
+
+    @Override
     public void showEventStatus(EventStatus eventStatus) {
         if (fabComplete != null && eventStatus != null) {
             fabComplete.setVisibility(View.VISIBLE);
@@ -412,6 +418,16 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         }
 
         return null;
+    }
+
+    @Override
+    public List<FormEntity> getInvalidFormEntities() {
+        return ((DataEntryFragment) ((FormSingleSectionAdapter) viewPager.getAdapter()).getItem(0)).getInvalidFormEntities();
+    }
+
+    @Override
+    public void setEventUid(String eventUid) {
+        // TODO: will not need this
     }
 
     private void attachListenerToExistingFragment() {
@@ -560,10 +576,28 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                             })
                             .show();
                 } else if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
-                    TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
+                    List<FormEntity> invalids = formSectionPresenter.getInvalidFormEntities();
+                    if (invalids == null || invalids.isEmpty()) {
+                        TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
+                    } else {
+                        String in = "Mandatory:\n";
+                        for (FormEntity invalid : invalids) {
+                            in += invalid.getLabel() + "\n";
+                        }
+                        Toast.makeText(FormSectionActivity.this, in, Toast.LENGTH_SHORT).show();
+                    }
 
                 } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
-                    TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
+                    List<FormEntity> invalids = formSectionPresenter.getInvalidFormEntities();
+                    if (invalids == null || invalids.isEmpty()) {
+                        TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
+                    } else {
+                        String in = "Mandatory:\n";
+                        for (FormEntity invalid : invalids) {
+                            in += invalid.getLabel() + "\n";
+                        }
+                        Toast.makeText(FormSectionActivity.this, in, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -727,7 +761,6 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
             if (formSections != null) {
                 this.formSections.addAll(formSections);
             }
-
             notifyDataSetChanged();
         }
     }
