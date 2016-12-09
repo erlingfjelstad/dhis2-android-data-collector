@@ -30,6 +30,8 @@ package org.hisp.dhis.android.app;
 
 import org.hisp.dhis.android.app.model.SyncAdapter;
 import org.hisp.dhis.android.app.views.SelectorFragment;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentComponent;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentModule;
 
 import dagger.Subcomponent;
 
@@ -46,6 +48,8 @@ public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.comm
     //------------------------------------------------------------------------
 
     FormComponent plus(FormModule formModule);
+
+    EnrollmentComponent plus(EnrollmentModule enrollmentModule);
 
     //------------------------------------------------------------------------
     // Injection targets

@@ -25,6 +25,8 @@
 
         <activity android:name=".views.FormSectionActivity"/>
 
+        <activity android:name=".views.enrollment.EnrollmentActivity"/>
+
         <activity
             android:name=".views.dashboard.TeiDashboardActivity"
             android:label="@string/title_activity_tei_dashboard"/>
