@@ -2,7 +2,7 @@ package org.hisp.dhis.android.app;
 
 import org.hisp.dhis.android.app.views.DataEntryFragment;
 import org.hisp.dhis.android.app.views.FormSectionActivity;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;

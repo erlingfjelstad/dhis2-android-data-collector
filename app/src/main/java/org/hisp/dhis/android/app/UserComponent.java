@@ -30,7 +30,8 @@ package org.hisp.dhis.android.app;
 
 import org.hisp.dhis.android.app.model.SyncAdapter;
 import org.hisp.dhis.android.app.views.SelectorFragment;
-import org.hisp.dhis.android.app.views.synchronization.SynchronizationActivity;
+import org.hisp.dhis.android.app.views.dashboard.DashboardFragment;
+import org.hisp.dhis.android.app.views.selectedcontent.SelectedContentFragment;
 
 import dagger.Subcomponent;
 
@@ -56,6 +57,8 @@ public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.comm
 
     void inject(SelectorFragment selectorFragment);
 
-    void inject(SynchronizationActivity synchronizationActivity);
+    void inject(DashboardFragment dashboardFragment);
+
+    void inject(SelectedContentFragment selectedContentFragment);
 }
 

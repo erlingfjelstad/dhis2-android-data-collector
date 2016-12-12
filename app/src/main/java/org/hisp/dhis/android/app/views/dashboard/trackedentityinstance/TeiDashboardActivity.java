@@ -1,4 +1,4 @@
-package org.hisp.dhis.android.app.views.dashboard;
+package org.hisp.dhis.android.app.views.dashboard.trackedentityinstance;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -28,7 +28,7 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
     private FloatingActionButton floatingActionButton;
 
 
-    public static void navigateTo(Activity activity, String itemUid, String programUid) {
+       public static void navigateTo(Activity activity, String itemUid, String programUid) {
         navigateToItem(activity, itemUid, programUid);
     }
 

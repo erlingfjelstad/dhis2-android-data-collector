@@ -1,4 +1,4 @@
-package org.hisp.dhis.android.app.views.dashboard;
+package org.hisp.dhis.android.app.views.dashboard.trackedentityinstance;
 
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;

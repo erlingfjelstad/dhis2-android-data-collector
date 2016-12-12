@@ -34,8 +34,10 @@ import android.content.Context;
 import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
 import org.hisp.dhis.android.app.presenters.SelectorPresenterImpl;
-import org.hisp.dhis.android.app.views.synchronization.SynchronizationPresenter;
-import org.hisp.dhis.android.app.views.synchronization.SynchronizationPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.DashboardPresenter;
+import org.hisp.dhis.android.app.views.dashboard.DashboardPresenterImpl;
+import org.hisp.dhis.android.app.views.selectedcontent.SelectedContentPresenter;
+import org.hisp.dhis.android.app.views.selectedcontent.SelectedContentPresenterImpl;
 import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
@@ -259,7 +261,19 @@ public final class UserModule {
 
     @Provides
     @PerUser
-    public SynchronizationPresenter synchronizationPresenter(SyncWrapper syncWrapper,ApiExceptionHandler apiExceptionHandler, Logger logger) {
-        return new SynchronizationPresenterImpl(syncWrapper, apiExceptionHandler, logger);
+    public DashboardPresenter dashboardPresenter(SyncWrapper syncWrapper,
+                                                 ApiExceptionHandler apiExceptionHandler,
+                                                 Logger logger) {
+        return new DashboardPresenterImpl(sdkInstance.trackedEntities(), sdkInstance.programs(), syncWrapper, apiExceptionHandler, logger);
+    }
+
+    @Provides
+    @PerUser
+    public SelectedContentPresenter selectedContentPresenter(SyncWrapper syncWrapper,
+                                                             ApiExceptionHandler apiExceptionHandler,
+                                                             Logger logger) {
+        return new SelectedContentPresenterImpl(syncWrapper, sdkInstance.trackedEntityInstances(),
+                sdkInstance.trackedEntityAttributeValues(), sdkInstance.programs(),
+                apiExceptionHandler, logger);
     }
 }

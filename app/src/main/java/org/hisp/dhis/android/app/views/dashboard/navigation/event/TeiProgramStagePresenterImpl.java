@@ -1,6 +1,6 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation.event;
 
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
+import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardPresenter;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
@@ -27,7 +27,6 @@ import java.util.Map;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;

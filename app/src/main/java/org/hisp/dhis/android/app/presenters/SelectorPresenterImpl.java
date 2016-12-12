@@ -421,6 +421,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             builder.uid(CodeGenerator.generateCode())
                                     .created(Calendar.getInstance().getTime())
                                     .organisationUnit(organisationUnitId)
+                                    .trackedEntityUid(program.trackedEntity().uid())
                                     .state(State.TO_POST);
                             return builder.build();
                         }

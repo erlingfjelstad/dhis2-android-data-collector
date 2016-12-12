@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
 import org.hisp.dhis.android.app.R;
+import org.hisp.dhis.android.app.views.dashboard.DashboardFragment;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultHomeActivity;
 import org.hisp.dhis.client.sdk.ui.fragments.WrapperFragment;
 
@@ -14,23 +15,34 @@ public class HomeActivity extends DefaultHomeActivity {
     @IdRes
     private static final int DRAWER_ITEM_PLACEHOLDER_ID = 324342;
 
+    @IdRes
+    private static final int DRAWER_ITEM_DASHBOARD_ID = 989022;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        addMenuItem(DRAWER_ITEM_DASHBOARD_ID, R.drawable.ic_dashboard,
+                R.string.drawer_item_dashboard);
 
         addMenuItem(DRAWER_ITEM_PLACEHOLDER_ID, R.drawable.ic_add,
                 R.string.drawer_item_placeholder);
         if (savedInstanceState == null) {
             onNavigationItemSelected(getNavigationView().getMenu()
-                    .findItem(DRAWER_ITEM_PLACEHOLDER_ID));
+                    .findItem(DRAWER_ITEM_DASHBOARD_ID));
         }
     }
 
     @Override
     protected boolean onItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case DRAWER_ITEM_PLACEHOLDER_ID: {
+            case DRAWER_ITEM_DASHBOARD_ID: {
                 attachFragment(WrapperFragment.newInstance(
+                        DashboardFragment.class, getString(R.string.drawer_item_dashboard)));
+                break;
+            }
+            case DRAWER_ITEM_PLACEHOLDER_ID: {
+                attachFragmentDelayed(WrapperFragment.newInstance(
                         SelectorFragment.class, getString(R.string.drawer_item_placeholder)));
                 break;
             }

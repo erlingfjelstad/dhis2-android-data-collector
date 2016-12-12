@@ -9,7 +9,6 @@ import com.crashlytics.android.core.CrashlyticsCore;
 //import org.hisp.dhis.android.app.views.ActivityComponent;
 import org.hisp.dhis.android.app.views.HomeActivity;
 import org.hisp.dhis.android.app.views.LoginActivity;
-import org.hisp.dhis.android.app.views.synchronization.SynchronizationActivity;
 import org.hisp.dhis.client.sdk.ui.bindings.App;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.NavigationHandler;
 
@@ -37,7 +36,6 @@ public class SkeletonApp extends App {
 
         NavigationHandler.loginActivity(LoginActivity.class);
         NavigationHandler.homeActivity(HomeActivity.class);
-        NavigationHandler.synchronizeActivity(SynchronizationActivity.class);
 
         appComponent = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))

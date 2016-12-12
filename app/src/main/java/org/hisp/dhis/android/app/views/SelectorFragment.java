@@ -61,7 +61,7 @@ import android.widget.Toast;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter.OnPickerListChangeListener;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
@@ -315,7 +315,7 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     @Override
     public void navigateToFormSectionActivityWithExistingItem(String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
-        if(FormSectionContextType.REGISTRATION.equals(contextType)) {
+        if (FormSectionContextType.REGISTRATION.equals(contextType)) {
             TeiDashboardActivity.navigateTo(getActivity(), itemUid, programUid);
         } else {
             FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, contextType);

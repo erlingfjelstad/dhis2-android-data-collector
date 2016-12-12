@@ -18,12 +18,7 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.DataEntryFragment;
-import org.hisp.dhis.android.app.views.DataEntryView;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
-import org.hisp.dhis.android.app.views.dashboard.TeiDashboardView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
-import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageView;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
 import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetFragment;

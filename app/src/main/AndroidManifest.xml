@@ -23,13 +23,15 @@
             android:name=".views.HomeActivity"
             android:theme="@style/AppTheme.Main" />
 
-        <activity android:name=".views.FormSectionActivity"/>
-        <activity android:name=".views.LoginActivity"/>
-        <activity android:name=".views.synchronization.SynchronizationActivity"/>
+        <activity android:name=".views.FormSectionActivity" />
+        <activity android:name=".views.LoginActivity" />
+        <activity
+            android:name=".views.selectedcontent.SelectedContentActivity"
+            />
 
         <activity
-            android:name=".views.dashboard.TeiDashboardActivity"
-            android:label="@string/title_activity_tei_dashboard"/>
+            android:name=".views.dashboard.trackedentityinstance.TeiDashboardActivity"
+            android:label="@string/title_activity_tei_dashboard" />
 
 
         <meta-data
@@ -51,9 +53,8 @@
         </service>
 
         <provider
-            android:authorities="org.hisp.dhis.client.sdk.core"
-            android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider" >
-        </provider>
+            android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider"
+            android:authorities="org.hisp.dhis.client.sdk.core"></provider>
 
     </application>
 

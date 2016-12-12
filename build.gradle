@@ -13,7 +13,7 @@ ext {
             dhisCommonsVersion      : "1.1",
 
             // android libs
-            supportVersion          : "24.2.0",
+            supportVersion          : "25.0.1",
             rxAndroidVersion        : "1.1.0",
             dbFlowVersion           : "3.0.1",
             progressBarVersion      : "1.2.0",
@@ -59,7 +59,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
         classpath 'io.fabric.tools:gradle:1.21.2'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
         classpath "net.ltgt.gradle:gradle-apt-plugin:0.9"
