@@ -21,6 +21,10 @@
 
     <string name="title_activity_tei_dashboard">TeiDashboardActivity</string>
 
+
     <string name="setting_up">Setting up the app. This may take a while…</string>
     <string name="filter">Filter…</string>
+
+    <string name="enrollments">Enrollments</string>
+
 </resources>

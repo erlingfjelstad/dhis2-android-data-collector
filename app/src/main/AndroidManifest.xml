@@ -29,6 +29,8 @@
             android:name=".views.selectedcontent.SelectedContentActivity"
             />
 
+        <activity android:name=".views.enrollment.EnrollmentActivity"/>
+
         <activity
             android:name=".views.dashboard.trackedentityinstance.TeiDashboardActivity"
             android:label="@string/title_activity_tei_dashboard" />

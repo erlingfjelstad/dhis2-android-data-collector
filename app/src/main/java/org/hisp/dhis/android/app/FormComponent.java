@@ -7,6 +7,7 @@ import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationFragmen
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetFragment;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentActivity;
 
 import dagger.Subcomponent;
 

@@ -6,9 +6,10 @@ import android.support.multidex.MultiDex;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 
-//import org.hisp.dhis.android.app.views.ActivityComponent;
 import org.hisp.dhis.android.app.views.HomeActivity;
 import org.hisp.dhis.android.app.views.LoginActivity;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentComponent;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentModule;
 import org.hisp.dhis.client.sdk.ui.bindings.App;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.NavigationHandler;
 
@@ -16,10 +17,13 @@ import io.fabric.sdk.android.Fabric;
 
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
+//import org.hisp.dhis.android.app.views.ActivityComponent;
+
 public class SkeletonApp extends App {
     private AppComponent appComponent;
     private UserComponent userComponent;
     private FormComponent formComponent;
+    private EnrollmentComponent enrollmentComponent;
     //private ActivityComponent activityComponent;
 
     @Override
@@ -78,5 +82,18 @@ public class SkeletonApp extends App {
 
     public void releaseFormComponent() {
         formComponent = null;
+    }
+
+    public EnrollmentComponent createEnrollmentComponent() {
+        enrollmentComponent = userComponent.plus(new EnrollmentModule());
+        return enrollmentComponent;
+    }
+
+    public EnrollmentComponent getEnrollmentComponent() {
+        return enrollmentComponent;
+    }
+
+    public void releaseEnrollmentComponent() {
+        enrollmentComponent = null;
     }
 }
