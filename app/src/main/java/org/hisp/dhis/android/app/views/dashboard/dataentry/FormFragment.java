@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -48,6 +49,7 @@ import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
@@ -68,9 +70,10 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FormSectionFragment extends Fragment implements FormSectionView, Toolbar.OnMenuItemClickListener {
+public class FormFragment extends Fragment implements FormSectionView, Toolbar.OnMenuItemClickListener {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String ARG_TWO_PANE_LAYOUT = "arg:twoPaneLayout";
+    private static final String ARG_FORM = "arg:form";
 
     // Injected dependencies
     @Inject
@@ -94,13 +97,14 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
     private String eventUid;
     private FilterableDialogFragment sectionDialogFragment;
     private Toolbar toolbar;
+    private Form form;
 
-    public FormSectionFragment() {
+    public FormFragment() {
         // Required empty public constructor
     }
 
-    public static FormSectionFragment newInstance(boolean twoPaneLayout) {
-        FormSectionFragment fragment = new FormSectionFragment();
+    public static FormFragment newInstance(boolean twoPaneLayout) {
+        FormFragment fragment = new FormFragment();
         Bundle arguments = new Bundle();
         arguments.putBoolean(ARG_TWO_PANE_LAYOUT, twoPaneLayout);
         fragment.setArguments(arguments);
@@ -121,12 +125,17 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
         }
 
         formSectionPresenter.attachView(this);
-
         setupCoordinatorLayout(rootView);
         setupToolbar(rootView);
         setupPickers(rootView);
         setupViewPager(rootView);
         setupFloatingActionButton(rootView);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(ARG_FORM)) {
+            form = savedInstanceState.getParcelable(ARG_FORM);
+            formSectionPresenter.buildForm(form);
+        }
+
         return rootView;
 
     }
@@ -140,6 +149,8 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
         if (!useTwoPaneLayout()) {
             toolbar.inflateMenu(R.menu.show_right_nav_menu);
             toolbar.setOnMenuItemClickListener(this);
+        } else if (toolbar.getMenu() != null) {
+            toolbar.getMenu().clear();
         }
     }
 
@@ -176,6 +187,22 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
 
         // since coordinates are optional, initially they should be hidden
         linearLayoutCoordinates.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(ARG_FORM)) {
+            form = savedInstanceState.getParcelable(ARG_FORM);
+        }
+        super.onViewStateRestored(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (form != null) {
+            outState.putParcelable(ARG_FORM, form);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -314,14 +341,70 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
     public void showFormSections(List<FormSection> formSections, String programUid, String programStageUid) {
         FormSectionsAdapter viewPagerAdapter =
                 new FormSectionsAdapter(getActivity().getSupportFragmentManager());
-        viewPagerAdapter.swapData(getEventUid(), programUid, programStageUid, formSections);
+        //viewPagerAdapter.swapData(getEventUid(), programUid, programStageUid, formSections);
 
         // in order not to loose state of ViewPager, first we
         // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
         viewPager.setAdapter(viewPagerAdapter);
 
-        // hide tab layout
+        // show tab layout
         tabLayout.setVisibility(View.VISIBLE);
+
+        // TabLayout will fail on you, if ViewPager which is going to be
+        // attached does not contain ViewPagerAdapter set to it.
+        tabLayout.setupWithViewPager(viewPager);
+    }
+
+    @Override
+    public void setMenuButtonVisibility(boolean showMenuButton) {
+
+        getArguments().putBoolean(ARG_TWO_PANE_LAYOUT, !showMenuButton);
+
+        if (toolbar != null) {
+            if (showMenuButton) {
+                if (toolbar.getMenu() == null || toolbar.getMenu().size() == 0) {
+                    toolbar.inflateMenu(R.menu.show_right_nav_menu);
+                    toolbar.setOnMenuItemClickListener(this);
+                }
+            } else if (toolbar.getMenu() != null) {
+                toolbar.getMenu().clear();
+            }
+        }
+
+    }
+
+    @Override
+    public void showForm(Form form) {
+
+        FragmentStatePagerAdapter viewPagerAdapter;
+
+        // TODO: Use only one SectionAdapter and let the adapter handle having just one section internally
+        if (form.getFormSections().size() == 1) {
+            viewPagerAdapter = new FormSingleSectionAdapter(getActivity().getSupportFragmentManager());
+            ((FormSingleSectionAdapter) viewPagerAdapter).swapData(form, form.getFormSections().get(0).getId());
+
+        } else {
+            viewPagerAdapter =
+                    new FormSectionsAdapter(getActivity().getSupportFragmentManager());
+            ((FormSectionsAdapter) viewPagerAdapter).swapData(form);
+        }
+
+        // in order not to loose state of ViewPager, first we
+        // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
+        viewPager.setAdapter(viewPagerAdapter);
+
+        refreshTabLayout(form);
+
+    }
+
+    private void refreshTabLayout(Form form) {
+
+        // TODO: wrap TabLayout and Adapter into a separate entity and let it handle its own state?
+        int visibility = View.VISIBLE;
+        if (form.getFormSections().size() == 1) {
+            visibility = View.GONE;
+        }
+        tabLayout.setVisibility(visibility);
 
         // TabLayout will fail on you, if ViewPager which is going to be
         // attached does not contain ViewPagerAdapter set to it.
@@ -332,8 +415,6 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
     public void setFormSectionsPicker(Picker picker) {
         sectionDialogFragment = FilterableDialogFragment.newInstance(picker);
         sectionDialogFragment.setOnPickerItemClickListener(new OnSearchSectionsClickListener());
-
-        //supportInvalidateOptionsMenu();
     }
 
     @Override
@@ -361,7 +442,6 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
             editTextLongitude.setText(longitude);
         }
     }
-
 
     @Override
     public void showFormTitle(String formTitle) {
@@ -404,6 +484,11 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
     @Override
     public void setEventUid(String eventUid) {
         this.eventUid = eventUid;
+    }
+
+    @Override
+    public void setForm(Form form) {
+        this.form = form;
     }
 
     @Override
@@ -526,6 +611,14 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
             this.formSectionId = formSectionId;
             this.notifyDataSetChanged();
         }
+
+        public void swapData(Form form, String formSectionId) {
+            itemId = form.getDataModelUid();
+            programId = form.getProgramUid();
+            programStageId = form.getProgramStageUid();
+            this.formSectionId = formSectionId;
+            notifyDataSetChanged();
+        }
     }
 
     private static class FormSectionsAdapter extends FragmentStatePagerAdapter {
@@ -561,14 +654,14 @@ public class FormSectionFragment extends Fragment implements FormSectionView, To
             return formSections;
         }
 
-        public void swapData(String eventId, String programId, String programStageId, List<FormSection> formSections) {
-            this.eventId = eventId;
-            this.programId = programId;
-            this.programStageId = programStageId;
-            this.formSections.clear();
+        public void swapData(Form form) {
+            eventId = form.getDataModelUid();
+            programId = form.getProgramUid();
+            programStageId = form.getProgramStageUid();
+            formSections.clear();
 
-            if (formSections != null) {
-                this.formSections.addAll(formSections);
+            if (form.getFormSections() != null) {
+                formSections.addAll(form.getFormSections());
             }
             notifyDataSetChanged();
         }

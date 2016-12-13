@@ -261,6 +261,25 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         }
     }
 
+    @Override
+    public void setMenuButtonVisibility(boolean showButtons) {
+
+        getArguments().putBoolean(ARG_TWO_PANE_LAYOUT, !showButtons);
+        if (getView() != null) {
+            if (showButtons) {
+                ((Toolbar) getView().findViewById(R.id.toolbar)).setNavigationIcon(R.drawable.ic_arrow_forward);
+                ((Toolbar) getView().findViewById(R.id.toolbar)).setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        rightNavDrawerController.hideMenu();
+                    }
+                });
+            } else {
+                ((Toolbar) getView().findViewById(R.id.toolbar)).setNavigationIcon(null);
+            }
+        }
+    }
+
     private void storeIdentifiableFormEntities(List<FormEntityText> formEntities) {
         if (appBarTeiIdentifiableFormEntities == null) {
             appBarTeiIdentifiableFormEntities = new ArrayList<>();

@@ -49,6 +49,7 @@ import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
@@ -354,6 +355,16 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     @Override
+    public void setMenuButtonVisibility(boolean showMenuButton) {
+
+    }
+
+    @Override
+    public void showForm(Form form) {
+
+    }
+
+    @Override
     public void setFormSectionsPicker(Picker picker) {
         sectionDialogFragment = FilterableDialogFragment.newInstance(picker);
         sectionDialogFragment.setOnPickerItemClickListener(new OnSearchSectionsClickListener());
@@ -428,6 +439,11 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     @Override
     public void setEventUid(String eventUid) {
         // TODO: will not need this
+    }
+
+    @Override
+    public void setForm(Form form) {
+
     }
 
     private void attachListenerToExistingFragment() {

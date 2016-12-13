@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface TeiNavigationView extends View {
     void populateAppBar(List<FormEntityText> formEntities);
+
+    void setMenuButtonVisibility(boolean showMenuButton);
 }

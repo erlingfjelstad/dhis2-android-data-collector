@@ -7,7 +7,5 @@ public interface TeiNavigationPresenter extends Presenter {
 
     void onProfileClick();
 
-    void showDataEntry(String eventUid, String programUid, String programStageUid);
-
     void createNewEvent(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid);
 }

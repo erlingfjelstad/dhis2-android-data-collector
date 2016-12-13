@@ -3,7 +3,7 @@ package org.hisp.dhis.android.app;
 import org.hisp.dhis.android.app.views.DataEntryFragment;
 import org.hisp.dhis.android.app.views.FormSectionActivity;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity;
-import org.hisp.dhis.android.app.views.dashboard.dataentry.FormSectionFragment;
+import org.hisp.dhis.android.app.views.dashboard.dataentry.FormFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.TeiNavigationFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfileFragment;
@@ -27,7 +27,7 @@ public interface FormComponent {
 
     void inject(FormSectionActivity formSectionActivity);
 
-    void inject(FormSectionFragment formSectionFragment);
+    void inject(FormFragment formFragment);
 
     void inject(DataEntryFragment dataEntryFragment);
 

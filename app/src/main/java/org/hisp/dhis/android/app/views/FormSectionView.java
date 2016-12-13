@@ -6,6 +6,7 @@ import android.support.annotation.StringDef;
 import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
@@ -32,6 +33,10 @@ public interface FormSectionView extends View {
      */
     void showFormSections(List<FormSection> formSections, String programUid, String programStageUid);
 
+    void setMenuButtonVisibility(boolean showMenuButton);
+
+    void showForm(Form form);
+
     void setFormSectionsPicker(Picker picker);
 
     void showReportDatePicker(String hint, String value);
@@ -49,6 +54,8 @@ public interface FormSectionView extends View {
     List<FormEntity> getInvalidFormEntities();
 
     void setEventUid(String eventUid);
+
+    void setForm(Form form);
 
     @Retention(RetentionPolicy.SOURCE)
     @StringDef({

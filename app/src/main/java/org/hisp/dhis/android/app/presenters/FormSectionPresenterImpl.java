@@ -8,7 +8,6 @@ import org.hisp.dhis.android.app.views.FormSectionView;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
-import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
@@ -17,16 +16,15 @@ import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
 import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
-import org.hisp.dhis.client.sdk.utils.CodeGenerator;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -125,29 +123,87 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     @Override
-    public void createNewEvent(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid) {
+    public void refreshMenuButtonVisibility(boolean visible) {
 
-        String trackedEntityInstance = enrollmentInteractor.store().query(enrollmentUid).trackedEntityInstance();
+    }
 
-        Event.Builder builder = Event.builder()
-                .uid(CodeGenerator.generateCode())
-                .created(Calendar.getInstance().getTime())
-                .state(State.TO_POST)
-                .organisationUnit(orgUnitUid)
-                .trackedEntityInstance(trackedEntityInstance)
-                .enrollmentUid(enrollmentUid)
-                .program(programUid)
-                .programStage(programStageUid)
-                .status(EventStatus.ACTIVE);
+    @Override
+    public void buildForm(Form form) {
 
-        Date eventDate = Calendar.getInstance().getTime();
-        builder.eventDate(eventDate);
+        if (formSectionView != null) {
+            formSectionView.setForm(form);
+        }
+        Program program = getProgram(form.getProgramUid()).toBlocking().first();
+        if (program != null && program.programType() != null) {
 
-        Event event = builder.build();
+            if (eventMissingEnrollment(form, program)) {
+                // TODO: send form instead of strings
+                createEnrollmentDataEntryForm(form.getDataModelUid(), form.getProgramStageUid());
+            } else {
+                createEventDataEntryForm(form);
+            }
+        }
+    }
 
-        eventInteractor.store().save(event);
+    private void createEventDataEntryForm(final Form form) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
 
-        showDataEntryForm(event.uid(), programUid, programStageUid);
+        subscription = new CompositeSubscription();
+
+        subscription.add(getEvent(form.getDataModelUid())
+                .map(new Func1<Event, Event>() {
+                    @Override
+                    public Event call(Event event) {
+                        // TODO consider refactoring rules-engine logic out of map function)
+                        // synchronously initializing rule engine
+                        rxRuleEngine.init(form.getDataModelUid()).toBlocking().first();
+
+                        // compute initial RuleEffects
+                        rxRuleEngine.notifyDataSetChanged();
+                        return event;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Event>() {
+                    @Override
+                    public void call(Event event) {
+                        isNull(event, String.format("Event with uid %s does not exist", form.getDataModelUid()));
+
+                        if (formSectionView != null) {
+                            formSectionView.showEventStatus(event.status());
+                        }
+
+                        List<ProgramStage> programStages = programInteractor.store().queryByUid(form.getProgramUid()).programStages();
+
+                        for (ProgramStage programStage : programStages) {
+                            if (programStage.uid().equals(form.getProgramStageUid())) {
+                                Form.Builder builder = Form.Builder.fromForm(form);
+                                builder.setTitle(programStage.displayName());
+                                if (formSectionView != null) {
+                                    formSectionView.setForm(builder.build());
+                                    formSectionView.showFormTitle(programStage.displayName());
+                                }
+                                break;
+                            }
+                        }
+                        // fire next operations
+                        subscription.add(showFormPickers(event));
+                        subscription.add(showFormSections(form));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, null, throwable);
+                    }
+                }));
+    }
+
+    private boolean eventMissingEnrollment(Form form, Program program) {
+        return program.programType() == ProgramType.WITH_REGISTRATION && form.getProgramStageUid() == null;
     }
 
     private void createEventDataEntryForm(final String eventUid, final String programUid, final String programStageUid) {
@@ -414,11 +470,6 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
         return formSectionView.getInvalidFormEntities();
     }
 
-    @Override
-    public void showMenu() {
-
-    }
-
     private Subscription saveEvent(final Event event) {
         return storeEvent(event)
                 .subscribeOn(Schedulers.io())
@@ -632,12 +683,112 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     @Override
                     public void call(AbstractMap.SimpleEntry<Picker, List<FormSection>> results) {
                         if (results != null && formSectionView != null) {
+                            Form.Builder formBuilder = new Form.Builder().
+                                    setProgramUid(programUid).
+                                    setProgramStageUid(programStageUid);
+
                             if (results.getValue() == null || results.getValue().isEmpty()) {
-                                formSectionView.showFormDefaultSection(results.getKey().getId(), programUid, programStageUid);
+
+                                FormSection singleSection = new FormSection(results.getKey().getId(), results.getKey().getName());
+                                List<FormSection> singleSectionCollection = new ArrayList<>();
+                                singleSectionCollection.add(singleSection);
+                                formBuilder.setFormSections(singleSectionCollection);
+
+                                //formSectionView.showFormDefaultSection(results.getKey().getId(), programUid, programStageUid);
                             } else {
-                                formSectionView.showFormSections(results.getValue(), programUid, programStageUid);
+                                //formSectionView.showFormSections(results.getValue(), programUid, programStageUid);
+                                formBuilder.setFormSections(results.getValue());
                                 formSectionView.setFormSectionsPicker(results.getKey());
                             }
+
+                            formSectionView.showForm(formBuilder.build());
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Form construction failed", throwable);
+                    }
+                });
+    }
+
+    private Subscription showFormSections(final Form form) {
+
+        return getProgram(form.getProgramUid())
+                .map(new Func1<Program, AbstractMap.SimpleEntry<Picker, List<FormSection>>>() {
+                    @Override
+                    public AbstractMap.SimpleEntry<Picker, List<FormSection>> call(Program program) {
+                        ProgramStage currentProgramStage = null;
+
+                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
+                            currentProgramStage = program.programStages().get(0);
+                        }
+
+                        List<ProgramStageSection> stageSections = null;
+
+                        if (currentProgramStage != null && currentProgramStage.programStageSections() != null) {
+                            stageSections = new ArrayList<>(currentProgramStage.programStageSections());
+                        }
+
+                        String chooseSectionPrompt = null;
+                        if (formSectionView != null) {
+                            chooseSectionPrompt = formSectionView.getFormSectionLabel(
+                                    FormSectionView.ID_CHOOSE_SECTION);
+                        }
+
+                        // fetching prompt from resources
+                        Picker picker = new Picker.Builder()
+                                .id(program.uid())
+                                .name(chooseSectionPrompt)
+                                .build();
+
+                        // transform sections
+                        List<FormSection> formSections = new ArrayList<>();
+                        if (stageSections != null && !stageSections.isEmpty()) {
+
+                            // sort sections
+                            Collections.sort(stageSections,
+                                    ProgramStageSection.DESCENDING_SORT_ORDER_COMPARATOR);
+
+                            for (ProgramStageSection section : stageSections) {
+                                formSections.add(new FormSection(
+                                        section.uid(), section.displayName()));
+                                picker.addChild(
+                                        new Picker.Builder()
+                                                .id(section.uid())
+                                                .name(section.displayName())
+                                                .parent(picker)
+                                                .build());
+                            }
+                        }
+
+                        return new AbstractMap.SimpleEntry<>(picker, formSections);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<AbstractMap.SimpleEntry<Picker, List<FormSection>>>() {
+                    @Override
+                    public void call(AbstractMap.SimpleEntry<Picker, List<FormSection>> results) {
+                        if (results != null && formSectionView != null) {
+
+                            Form.Builder formBuilder = Form.Builder.fromForm(form);
+
+                            if (results.getValue() == null || results.getValue().isEmpty()) {
+
+                                FormSection singleSection = new FormSection(results.getKey().getId(), results.getKey().getName());
+                                List<FormSection> singleSectionCollection = new ArrayList<>();
+                                singleSectionCollection.add(singleSection);
+                                formBuilder.setFormSections(singleSectionCollection);
+
+                                //formSectionView.showFormDefaultSection(results.getKey().getId(), programUid, programStageUid);
+                            } else {
+                                //formSectionView.showFormSections(results.getValue(), programUid, programStageUid);
+                                formBuilder.setFormSections(results.getValue());
+                                formSectionView.setFormSectionsPicker(results.getKey());
+                            }
+
+                            formSectionView.showForm(formBuilder.build());
                         }
                     }
                 }, new Action1<Throwable>() {

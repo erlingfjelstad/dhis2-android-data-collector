@@ -134,7 +134,7 @@ public class TeiProfilePresenterImpl implements TeiProfilePresenter {
 
     @Override
     public void toggleLockStatus() {
-        if(teiProfileView != null) {
+        if (teiProfileView != null) {
             teiProfileView.toggleLockStatus();
         }
     }

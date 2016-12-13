@@ -14,13 +14,11 @@ import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.dashboard.navigation.AbsTeiNavigationSectionFragment;
 import org.hisp.dhis.client.sdk.ui.activities.ReportEntitySelection;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.ExpandableAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.RecyclerViewSelection;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
-import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,16 +84,6 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     }
 
     @Override
-    public void onEventClicked(FormEntity event) {
-        teiProgramStagePresenter.onEventClicked(event.getId());
-    }
-
-    @Override
-    public void navigateToFormSection(String itemUid, String programUid, String programStageUid) {
-        teiProgramStagePresenter.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, FormSectionContextType.REPORT);
-    }
-
-    @Override
     protected ExpandableRecyclerAdapter getAdapter() {
         return adapter;
     }
@@ -106,7 +94,7 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
         adapter.notifyDataSetChanged();
         reportEntitySelection.setSelectedUid(uid);
 
-        teiProgramStagePresenter.navigateTo(uid);
+        teiProgramStagePresenter.showEventForm(uid);
     }
 
     @Override

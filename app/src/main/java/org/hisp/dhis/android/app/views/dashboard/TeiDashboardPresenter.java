@@ -1,6 +1,7 @@
 package org.hisp.dhis.android.app.views.dashboard;
 
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 
 public interface TeiDashboardPresenter extends Presenter {
 
@@ -8,10 +9,11 @@ public interface TeiDashboardPresenter extends Presenter {
 
     void showMenu();
 
-    void showDataEntryForEvent(String eventid);
+    void showForm(Form form);
 
-    void navigateToExistingItem(String eventUid, String programUid, String programStageUid);
+    void refreshMenuButtonVisibility(boolean showMenuButtons);
 
-    void navigateToNewItem(String programUid, String programStageUid,
-                           String orgUnitUid, String enrollmentUid);
+    void hideMenuButtons();
+
+    void showMenuButtons();
 }

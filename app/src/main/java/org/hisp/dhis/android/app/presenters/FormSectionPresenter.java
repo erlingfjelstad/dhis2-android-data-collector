@@ -2,6 +2,7 @@ package org.hisp.dhis.android.app.presenters;
 
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 
 import java.util.Date;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public interface FormSectionPresenter extends Presenter {
 
-    void createNewEvent(String programUid, String programStageUid, String orgUnitUid, String enrollmentUid);
+    void buildForm(Form form);
 
     void saveEventDate(String eventUid, Date eventDate);
 
@@ -23,7 +24,7 @@ public interface FormSectionPresenter extends Presenter {
 
     List<FormEntity> getInvalidFormEntities();
 
-    void showMenu();
-
     void showDataEntryForm(String eventUid, String programUid, String programStageUid);
+
+    void refreshMenuButtonVisibility(boolean visible);
 }
