@@ -185,7 +185,6 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
     @Override
     public void setSelectedUid(String uid) {
         selectedUid = uid;
-        closeDrawer();
     }
 
     @Override
