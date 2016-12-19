@@ -427,7 +427,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
 
     @Override
     public void showForm(Form form) {
-
+        this.form = form;
         hideEmptyPlaceholder();
 
         FragmentStatePagerAdapter viewPagerAdapter;

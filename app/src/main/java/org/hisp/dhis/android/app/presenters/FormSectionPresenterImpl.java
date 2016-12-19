@@ -172,10 +172,10 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public Event call(Event event) {
                         // TODO consider refactoring rules-engine logic out of map function)
                         // synchronously initializing rule engine
-                        rxRuleEngine.init(form.getDataModelUid()).toBlocking().first();
+                        //rxRuleEngine.init(form.getDataModelUid()).toBlocking().first();
 
                         // compute initial RuleEffects
-                        rxRuleEngine.notifyDataSetChanged();
+                        //rxRuleEngine.notifyDataSetChanged();
                         return event;
                     }
                 })
