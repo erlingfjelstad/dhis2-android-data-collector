@@ -29,7 +29,9 @@
 package org.hisp.dhis.android.app;
 
 import android.app.Application;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.provider.SyncStateContract;
 
 import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
@@ -49,6 +51,10 @@ import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.AuthenticatorService;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultAppAccountManager;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultAppAccountManagerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultNotificationHandlerImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
@@ -222,8 +228,14 @@ public final class UserModule {
 
     @Provides
     @PerUser
+    public DefaultAppAccountManager defaultAppAccountManager(@Nullable UserInteractor userInteractor, Logger logger) {
+        return new DefaultAppAccountManagerImpl(sdkInstance.application().getApplicationContext(), appPreferences(), userInteractor, sdkInstance.application().getString(R.string.authority), sdkInstance.application().getString(R.string.account_type), logger);
+    }
+
+    @Provides
+    @PerUser
     public ProfilePresenter profilePresenter(@Nullable UserInteractor userInteractor, Logger logger) {
-        return new ProfilePresenterImpl(userInteractor, null, null, null, logger);
+        return new ProfilePresenterImpl(userInteractor, syncDateWrapper(appPreferences()), defaultAppAccountManager(userInteractor, logger), new DefaultNotificationHandlerImpl(sdkInstance.application().getApplicationContext()), logger);
     }
 
     @Provides
