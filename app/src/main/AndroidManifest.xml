@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.hisp.dhis.android.app"
     android:installLocation="internalOnly">
@@ -9,28 +10,24 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.Base">
-
-
         <activity android:name="org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLauncherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name="org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLoginActivity" />
         <activity
             android:name=".views.HomeActivity"
             android:theme="@style/AppTheme.Main" />
 
-        <activity android:name=".views.FormSectionActivity"/>
 
-        <activity android:name=".views.enrollment.EnrollmentActivity"/>
+        <activity android:name=".views.FormSectionActivity" />
 
-        <activity
-            android:name=".views.dashboard.TeiDashboardActivity"
-            android:label="@string/title_activity_tei_dashboard"/>
+        <activity android:name=".views.enrollment.EnrollmentActivity" />
 
+        <activity android:name=".views.dashboard.TeiDashboardActivity" />
 
         <meta-data
             android:name="io.fabric.ApiKey"
@@ -40,7 +37,6 @@
         <service
             android:name=".model.SyncService"
             android:exported="false">
-
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
@@ -51,10 +47,16 @@
         </service>
 
         <provider
-            android:authorities="org.hisp.dhis.client.sdk.core"
-            android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider" >
-        </provider>
+            android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider"
+            android:authorities="org.hisp.dhis.client.sdk.core" />
 
+        <activity
+            android:name=".views.dashboard.navigation.event.create.CreateEventActivity"
+            android:parentActivityName=".views.dashboard.TeiDashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.hisp.dhis.android.app.views.dashboard.TeiDashboardActivity" />
+        </activity>
     </application>
 
 </manifest>

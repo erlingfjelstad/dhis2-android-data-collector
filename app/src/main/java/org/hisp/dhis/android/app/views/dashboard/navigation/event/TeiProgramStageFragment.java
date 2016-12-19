@@ -14,14 +14,11 @@ import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.FormSectionActivity;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.dashboard.navigation.AbsTeiNavigationSectionFragment;
 import org.hisp.dhis.client.sdk.ui.activities.ReportEntitySelection;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.ExpandableAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.RecyclerViewSelection;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
-import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +27,15 @@ import javax.inject.Inject;
 
 public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment implements TeiProgramStageView, RecyclerViewSelection {
 
+    private static final String ARG_SELECTED_REPORT_ENTITY = "arg:selectedReportEntityUid";
     @Inject
     TeiProgramStagePresenter teiProgramStagePresenter;
 
     private ExpandableAdapter adapter;
     private ArrayList<ExpansionPanel> programStages;
-    private String selectedReportEntityUid = "";
+    private String selectedReportEntityUid;
     private ReportEntitySelection reportEntitySelection;
+    private Bundle savedInstanceState;
 
     public static TeiProgramStageFragment newInstance(String itemUid, String programUid) {
         Bundle bundle = new Bundle();
@@ -51,6 +50,15 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        try {
+            ((SkeletonApp) getActivity().getApplication()).getFormComponent().inject(this);
+        } catch (Exception e) {
+            Log.e("DataEntryFragment", "Activity or Application is null. Vital resources have been killed.", e);
+        }
+        teiProgramStagePresenter.attachView(this);
+        teiProgramStagePresenter.drawProgramStages(getItemUid(), getProgramUid());
+
         programStages = new ArrayList<>();
         adapter = new ExpandableAdapter(programStages);
         adapter.setRecyclerViewSelectionCallback(this);
@@ -58,21 +66,24 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        try {
-            ((SkeletonApp) getActivity().getApplication()).getFormComponent().inject(this);
-        } catch (Exception e) {
-            Log.e("DataEntryFragment", "Activity or Application is null. Vital resources have been killed.", e);
+        if (savedInstanceState != null) {
+            this.savedInstanceState = savedInstanceState;
+            adapter.onRestoreInstanceState(savedInstanceState);
+            selectedReportEntityUid = savedInstanceState.getString(ARG_SELECTED_REPORT_ENTITY);
+            adapter.notifyDataSetChanged();
+            reportEntitySelection.setSelectedUid(selectedReportEntityUid);
         }
 
-
-        teiProgramStagePresenter.attachView(this);
         return recyclerView;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        teiProgramStagePresenter.drawProgramStages(getItemUid(), getProgramUid());
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        adapter.onSaveInstanceState(savedInstanceState);
+        if (selectedReportEntityUid != null) {
+            savedInstanceState.putString(ARG_SELECTED_REPORT_ENTITY, selectedReportEntityUid);
+        }
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -84,16 +95,12 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     @Override
     public void drawProgramStages(final List<ExpansionPanel> programStages) {
         adapter.swap(programStages);
-    }
-
-    @Override
-    public void onEventClicked(FormEntity event) {
-        teiProgramStagePresenter.onEventClicked(event.getId());
-    }
-
-    @Override
-    public void navigateToFormSection(String itemUid, String programUid, String programStageUid) {
-        FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, FormSectionContextType.REPORT);
+        if (savedInstanceState != null) {
+            adapter.onRestoreInstanceState(savedInstanceState);
+        } else {
+            // Expand all Program Stages by default
+            adapter.expandAllParents();
+        }
     }
 
     @Override
@@ -107,7 +114,7 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
         adapter.notifyDataSetChanged();
         reportEntitySelection.setSelectedUid(uid);
 
-        teiProgramStagePresenter.navigateTo(uid);
+        teiProgramStagePresenter.showEventForm(uid);
     }
 
     @Override

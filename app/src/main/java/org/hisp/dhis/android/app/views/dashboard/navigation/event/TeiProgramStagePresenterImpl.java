@@ -11,6 +11,7 @@ import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.LocaleUtils;
@@ -27,7 +28,6 @@ import java.util.Map;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -54,13 +54,7 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     }
 
     @Override
-    public void onEventClicked(String eventUid) {
-        teiDashboardPresenter.showDataEntryForEvent(eventUid);
-        teiDashboardPresenter.hideMenu();
-    }
-
-    @Override
-    public void navigateTo(String itemUid) {
+    public void showEventForm(final String eventUid) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -68,15 +62,34 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
         subscription = new CompositeSubscription();
 
-        subscription.add(getEvent(itemUid)
+        // TODO: remove this. send eventUid only and let FormSectionPresenter build form from Event/Program
+        subscription.add(getEvent(eventUid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Event>() {
                     @Override
-                    public void call(Event event) {
-                        if (teiProgramStageView != null) {
-                            teiProgramStageView.navigateToFormSection(event.uid(), event.program(), event.programStage());
-                        }
+                    public void call(final Event event) {
+                        subscription.add(getProgram(event.program())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<Program>() {
+                            @Override
+                            public void call(Program program) {
+
+                                Form.Builder formBuilder = new Form.Builder()
+                                        .setDataModelUid(eventUid)
+                                        .setProgramUid(event.program())
+                                        .setProgramStageUid(event.programStage());
+
+                                for (ProgramStage programStage : program.programStages()) {
+                                    if (programStage.uid().equals(event.programStage())) {
+                                        formBuilder.setTitle(programStage.displayName());
+                                        break;
+                                    }
+                                }
+                                teiDashboardPresenter.showForm(formBuilder.build());
+                            }
+                        }));
                     }
                 }));
     }
@@ -133,32 +146,6 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         }
                     }
                 }));
-
-//        subscription.add(Observable.zip(getProgram(programUid), getEventsForEnrollment(enrollmentUid), new Func2<Program, List<Event>, List<ProgramStage>>() {
-//            @Override
-//            public List<ProgramStage> call(Program program, List<Event> events) {
-//                List<ExpansionPanel> expansionPanels = new ArrayList<>();
-//                if(program != null && program.programStages() != null && !program.programStages().isEmpty()) {
-//                    return program.programStages();
-//                }
-//                return null;
-//            }
-//        })
-//                .forEach(new Action1<List<ProgramStage>>() {
-//                    @Override
-//                    public void call(List<ProgramStage> programStages) {
-//
-//                    }
-//                })
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribeOn(Schedulers.io())
-//                .subscribe(new Action1<List<ProgramStage>>() {
-//                    @Override
-//                    public void call(List<ProgramStage> expansionPanelList) {
-//
-//                    }
-//                }));
-
 
     }
 

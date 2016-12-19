@@ -31,16 +31,7 @@ package org.hisp.dhis.android.app;
 import android.app.Application;
 import android.content.Context;
 
-import org.hisp.dhis.android.app.model.SyncWrapper;
-import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.commons.LoggerImpl;
-import org.hisp.dhis.client.sdk.ui.AppPreferences;
-import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferencesImpl;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import javax.inject.Singleton;

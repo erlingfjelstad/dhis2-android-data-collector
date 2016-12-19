@@ -37,7 +37,6 @@ import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.List;
 
 public interface SelectorView extends View {
@@ -63,9 +62,9 @@ public interface SelectorView extends View {
 
     void onReportEntityDeletionError(ReportEntity failedEntity);
 
-    void navigateToFormSectionActivityWithNewItem(String enrollmentUid, String programUid, String programStage, FormSectionContextType contextType);
+    void navigateToFormWithNewItem(String enrollmentUid, String programUid, String programStage, DashboardContextType contextType);
 
-    void navigateToFormSectionActivityWithExistingItem(String enrollmentUid, String programUid, String programStageUid, FormSectionContextType contextType);
+    void navigateToFormWithExistingItem(String enrollmentUid, String programUid, String programStageUid, DashboardContextType contextType);
 
     String getPickerLabel(@PickerLabelId String pickerLabelId);
 

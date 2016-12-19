@@ -1,10 +1,17 @@
 package org.hisp.dhis.android.app.views.dashboard;
 
 import org.hisp.dhis.client.sdk.ui.bindings.presenters.Presenter;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 
 public interface TeiDashboardPresenter extends Presenter {
 
     void hideMenu();
 
-    void showDataEntryForEvent(String eventid);
+    void showMenu();
+
+    void showForm(Form form);
+
+    void lockNavigation();
+
+    void unlockNavigation();
 }
