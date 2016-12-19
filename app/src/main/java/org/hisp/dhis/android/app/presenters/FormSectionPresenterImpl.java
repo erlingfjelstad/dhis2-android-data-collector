@@ -634,6 +634,13 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                         if (ProgramType.WITHOUT_REGISTRATION.equals(program.programType())) {
                             currentProgramStage = program.programStages().get(0);
+                        } else if (form.getProgramStageUid() != null) {
+                            for (ProgramStage programStage : program.programStages()) {
+                                if (programStage.uid().equals(form.getProgramStageUid())) {
+                                    currentProgramStage = programStage;
+                                    break;
+                                }
+                            }
                         }
 
                         List<ProgramStageSection> stageSections = null;
@@ -672,6 +679,10 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                                                 .parent(picker)
                                                 .build());
                             }
+                        } else {
+                            //  add a default section
+                            FormSection singleSection = new FormSection(program.uid(), chooseSectionPrompt);
+                            formSections.add(singleSection);
                         }
 
                         return new AbstractMap.SimpleEntry<>(picker, formSections);
@@ -686,19 +697,11 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                             Form.Builder formBuilder = Form.Builder.fromForm(form);
 
-                            if (results.getValue() == null || results.getValue().isEmpty()) {
-
-                                FormSection singleSection = new FormSection(results.getKey().getId(), results.getKey().getName());
-                                List<FormSection> singleSectionCollection = new ArrayList<>();
-                                singleSectionCollection.add(singleSection);
-                                formBuilder.setFormSections(singleSectionCollection);
-
-                                //formSectionView.showFormDefaultSection(results.getKey().getId(), programUid, programStageUid);
-                            } else {
-                                //formSectionView.showFormSections(results.getValue(), programUid, programStageUid);
-                                formBuilder.setFormSections(results.getValue());
+                            if (results.getValue() != null && results.getValue().size() > 1) {
                                 formSectionView.setFormSectionsPicker(results.getKey());
                             }
+
+                            formBuilder.setFormSections(results.getValue());
 
                             formSectionView.showForm(formBuilder.build());
                         }
