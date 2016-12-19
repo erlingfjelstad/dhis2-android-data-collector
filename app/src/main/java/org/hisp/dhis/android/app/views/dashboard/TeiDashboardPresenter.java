@@ -11,9 +11,7 @@ public interface TeiDashboardPresenter extends Presenter {
 
     void showForm(Form form);
 
-    void refreshMenuButtonVisibility(boolean showMenuButtons);
+    void lockNavigation();
 
-    void hideMenuButtons();
-
-    void showMenuButtons();
+    void unlockNavigation();
 }

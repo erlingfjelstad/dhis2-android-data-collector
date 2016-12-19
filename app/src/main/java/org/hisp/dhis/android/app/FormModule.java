@@ -7,6 +7,8 @@ import org.hisp.dhis.android.app.presenters.DataEntryPresenter;
 import org.hisp.dhis.android.app.presenters.DataEntryPresenterImpl;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenterImpl;
+import org.hisp.dhis.android.app.views.dashboard.NavigationLockController;
+import org.hisp.dhis.android.app.views.dashboard.NavigationLockControllerImpl;
 import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerController;
 import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerControllerImpl;
 import org.hisp.dhis.android.app.views.dashboard.TeiDashboardPresenter;
@@ -44,6 +46,13 @@ public class FormModule {
     public RightNavDrawerController providesRightNavDrawerController(
             @Nullable TeiDashboardPresenter teiDashboardPresenter) {
         return new RightNavDrawerControllerImpl(teiDashboardPresenter);
+    }
+
+    @Provides
+    @PerActivity
+    public NavigationLockController providesNavigationLockController(
+            @Nullable TeiDashboardPresenter teiDashboardPresenter) {
+        return new NavigationLockControllerImpl(teiDashboardPresenter);
     }
 
     @Provides

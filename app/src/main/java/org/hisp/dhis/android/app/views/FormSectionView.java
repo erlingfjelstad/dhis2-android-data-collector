@@ -33,8 +33,19 @@ public interface FormSectionView extends View {
      */
     void showFormSections(List<FormSection> formSections, String programUid, String programStageUid);
 
+    /**
+     * Tells view to show / or hide menu button
+     * Form should not show menu button in landscape mode on tablets
+     *
+     * @param showMenuButton show/hide state of menu button
+     */
     void setMenuButtonVisibility(boolean showMenuButton);
 
+    /**
+     * Tells view to show form
+     *
+     * @param form {@link org.hisp.dhis.client.sdk.ui.models.Form Form} to show
+     */
     void showForm(Form form);
 
     void setFormSectionsPicker(Picker picker);

@@ -22,5 +22,8 @@
     <string name="title_activity_tei_dashboard">TeiDashboardActivity</string>
     <string name="show_right_hand_side_menu">Show menu</string>
     <string name="hide_right_hand_side_menu">Hide menu</string>
+    <string name="empty_form_placeholder">Select form in the navigation on the right.</string>
+    <string name="enrollment_complete_empty_form">Enrollment complete.\n\nSelect form in the navigation on the right</string>
+    <string name="please_complete_enrollment">Please complete enrollment</string>
 
 </resources>

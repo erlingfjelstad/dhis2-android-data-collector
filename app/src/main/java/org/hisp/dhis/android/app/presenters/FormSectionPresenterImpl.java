@@ -97,37 +97,6 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     @Override
-    public void showDataEntryForm(final String eventUid, String programUid, String programStageUid) {
-        if (formSectionView != null) {
-            formSectionView.setEventUid(eventUid);
-        }
-        Program program = getProgram(programUid).toBlocking().first();
-        if (program != null && program.programType() != null) {
-            switch (program.programType()) {
-                case WITH_REGISTRATION: {
-                    if (programStageUid == null) {
-                        createEnrollmentDataEntryForm(eventUid, programStageUid);
-                    } else {
-                        createEventDataEntryForm(eventUid, programUid, programStageUid);
-                    }
-                }
-                break;
-                case WITHOUT_REGISTRATION: {
-                    createEventDataEntryForm(eventUid, programUid, programStageUid);
-                    break;
-                }
-                default:
-                    throw new IllegalArgumentException("ProgramType is not supported");
-            }
-        }
-    }
-
-    @Override
-    public void refreshMenuButtonVisibility(boolean visible) {
-
-    }
-
-    @Override
     public void buildForm(Form form) {
 
         if (formSectionView != null) {
@@ -138,11 +107,55 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
             if (eventMissingEnrollment(form, program)) {
                 // TODO: send form instead of strings
-                createEnrollmentDataEntryForm(form.getDataModelUid(), form.getProgramStageUid());
+                createEnrollmentDataEntryForm(form);
             } else {
                 createEventDataEntryForm(form);
             }
         }
+    }
+
+    private void createEnrollmentDataEntryForm(final Form form) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
+
+        subscription = new CompositeSubscription();
+
+        subscription.add(getEnrollment(form.getDataModelUid())
+                .map(new Func1<Enrollment, Enrollment>() {
+                    @Override
+                    public Enrollment call(Enrollment enrollment) {
+                        // TODO consider refactoring rules-engine logic out of map function)
+                        // synchronously initializing rule engine
+//                        rxRuleEngine.initForEnrollment(enrollmentUid).toBlocking().first();
+
+                        // compute initial RuleEffects
+//                        rxRuleEngine.notifyDataSetChanged();
+                        return enrollment;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Enrollment>() {
+                    @Override
+                    public void call(Enrollment enrollment) {
+                        isNull(enrollment, String.format("Enrollment with uid %s does not exist", form.getDataModelUid()));
+
+                        if (formSectionView != null) {
+                            formSectionView.showEnrollmentStatus(enrollment.enrollmentStatus());
+                        }
+
+                        // fire next operations
+                        subscription.add(showFormPickers(enrollment));
+                        subscription.add(showFormSections(form));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, null, throwable);
+                    }
+                }));
     }
 
     private void createEventDataEntryForm(final Form form) {
@@ -204,107 +217,6 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
     private boolean eventMissingEnrollment(Form form, Program program) {
         return program.programType() == ProgramType.WITH_REGISTRATION && form.getProgramStageUid() == null;
-    }
-
-    private void createEventDataEntryForm(final String eventUid, final String programUid, final String programStageUid) {
-        if (formSectionView != null) {
-            formSectionView.setEventUid(eventUid);
-        }
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-            subscription = null;
-        }
-
-        subscription = new CompositeSubscription();
-
-        subscription.add(getEvent(eventUid)
-                .map(new Func1<Event, Event>() {
-                    @Override
-                    public Event call(Event event) {
-                        // TODO consider refactoring rules-engine logic out of map function)
-                        // synchronously initializing rule engine
-                        rxRuleEngine.init(eventUid).toBlocking().first();
-
-                        // compute initial RuleEffects
-                        rxRuleEngine.notifyDataSetChanged();
-                        return event;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Event>() {
-                    @Override
-                    public void call(Event event) {
-                        isNull(event, String.format("Event with uid %s does not exist", eventUid));
-
-                        if (formSectionView != null) {
-                            formSectionView.showEventStatus(event.status());
-                        }
-
-                        List<ProgramStage> programStages = programInteractor.store().queryByUid(programUid).programStages();
-                        for (ProgramStage programStage : programStages) {
-                            if (programStage.uid().equals(programStageUid)) {
-                                if (formSectionView != null) {
-                                    formSectionView.showFormTitle(programStage.displayName());
-                                }
-                                break;
-                            }
-                        }
-
-                        // fire next operations
-                        subscription.add(showFormPickers(event));
-                        subscription.add(showFormSections(event.program(), programStageUid));
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        logger.e(TAG, null, throwable);
-                    }
-                }));
-    }
-
-    private void createEnrollmentDataEntryForm(final String enrollmentUid, final String programStageUid) {
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-            subscription = null;
-        }
-
-        subscription = new CompositeSubscription();
-
-        subscription.add(getEnrollment(enrollmentUid)
-                .map(new Func1<Enrollment, Enrollment>() {
-                    @Override
-                    public Enrollment call(Enrollment enrollment) {
-                        // TODO consider refactoring rules-engine logic out of map function)
-                        // synchronously initializing rule engine
-//                        rxRuleEngine.initForEnrollment(enrollmentUid).toBlocking().first();
-
-                        // compute initial RuleEffects
-//                        rxRuleEngine.notifyDataSetChanged();
-                        return enrollment;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Enrollment>() {
-                    @Override
-                    public void call(Enrollment enrollment) {
-                        isNull(enrollment, String.format("Enrollment with uid %s does not exist", enrollmentUid));
-
-                        if (formSectionView != null) {
-                            formSectionView.showEnrollmentStatus(enrollment.enrollmentStatus());
-                        }
-
-                        // fire next operations
-                        subscription.add(showFormPickers(enrollment));
-                        subscription.add(showFormSections(enrollment.program(), programStageUid));
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        logger.e(TAG, null, throwable);
-                    }
-                }));
     }
 
     @Override

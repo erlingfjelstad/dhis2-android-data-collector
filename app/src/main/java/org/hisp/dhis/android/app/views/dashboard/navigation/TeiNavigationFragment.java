@@ -42,10 +42,9 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     private static final String ARG_ITEM_UID = "arg:itemUid";
     private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String TAG = TeiNavigationFragment.class.getSimpleName();
-    private static final int VIEW_PAGER_ITEM_PROGRAM_STAGES = 0;
-    private static final int VIEW_PAGER_ITEM_TEI_PROFILE = 1;
-    private static final int VIEW_PAGER_ITEM_WIDGETS = 2;
+
     private static final String ARG_TWO_PANE_LAYOUT = "arg:twoPaneLayout";
+    private static final String ARG_REGISTRATION_COMPLETE = "arg:registrationComplete";
 
     @Inject
     TeiNavigationPresenter teiNavigationPresenter;
@@ -63,13 +62,13 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         // Required empty public constructor
     }
 
-    public static TeiNavigationFragment newInstance(String itemUid, String programUid, boolean twoPaneLayout) {
+    public static TeiNavigationFragment newInstance(String itemUid, String programUid, boolean twoPaneLayout, boolean registrationComplete) {
         TeiNavigationFragment fragment = new TeiNavigationFragment();
         Bundle arguments = new Bundle();
         arguments.putString(ARG_ITEM_UID, itemUid);
         arguments.putString(ARG_PROGRAM_UID, programUid);
         arguments.putBoolean(ARG_TWO_PANE_LAYOUT, twoPaneLayout);
-
+        arguments.putBoolean(ARG_REGISTRATION_COMPLETE, registrationComplete);
         fragment.setArguments(arguments);
         return fragment;
     }
@@ -102,11 +101,15 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setUpFloatingActionButton(view);
         initViewPager(view);
         initAppBarLayout(view);
-        setUpFloatingActionButton(view);
 
         teiNavigationPresenter.configureAppBar(getItemUid(), getProgramUid());
+    }
+
+    private boolean isRegistrationComplete() {
+        return getArguments().containsKey(ARG_REGISTRATION_COMPLETE) && getArguments().getBoolean(ARG_REGISTRATION_COMPLETE);
     }
 
     @Override
@@ -123,7 +126,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         collapsingToolbarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewPager.setCurrentItem(VIEW_PAGER_ITEM_TEI_PROFILE, true);
+                viewPager.setCurrentItem(TAB_PROFILE, true);
             }
         });
 
@@ -156,7 +159,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             @Override
             public void onClick(View v) {
                 switch (viewPager.getCurrentItem()) {
-                    case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
+                    case TAB_PROGRAM_STAGES: {
                         //startActivityForResult();
                         CreateEventActivity.navigateTo(TeiNavigationFragment.this,
                                 getProgramUid(),
@@ -164,11 +167,11 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                                 appBarTeiIdentifiableFormEntities);
                         break;
                     }
-                    case VIEW_PAGER_ITEM_TEI_PROFILE: {
+                    case TAB_PROFILE: {
                         teiNavigationPresenter.onProfileClick();
                         break;
                     }
-                    case VIEW_PAGER_ITEM_WIDGETS: {
+                    case TAB_WIDGETS: {
                         Toast.makeText(v.getContext(), "Hello from Widgets", Toast.LENGTH_LONG).show();
                         break;
                     }
@@ -214,7 +217,15 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
+                if (isRegistrationComplete()) {
+                    viewPager.setCurrentItem(tab.getPosition());
+                } else {
+                    if (tab.getPosition() != TAB_WIDGETS) {
+                        Toast.makeText(getContext(), R.string.please_complete_enrollment, Toast.LENGTH_SHORT).show();
+                    }
+                    tabLayout.getTabAt(TAB_WIDGETS).select();
+                    viewPager.setCurrentItem(TAB_WIDGETS);
+                }
             }
 
             @Override
@@ -227,6 +238,10 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
             }
         });
+
+        if (!isRegistrationComplete()) {
+            tabLayout.getTabAt(TAB_WIDGETS).select();
+        }
     }
 
     private String getItemUid() {
@@ -280,6 +295,16 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         }
     }
 
+    @Override
+    public void setRegistrationComplete(boolean registrationComplete) {
+        getArguments().putBoolean(ARG_REGISTRATION_COMPLETE, registrationComplete);
+    }
+
+    @Override
+    public void selectTab(@TabPosition int position) {
+        tabLayout.getTabAt(position).select();
+    }
+
     private void storeIdentifiableFormEntities(List<FormEntityText> formEntities) {
         if (appBarTeiIdentifiableFormEntities == null) {
             appBarTeiIdentifiableFormEntities = new ArrayList<>();
@@ -299,11 +324,11 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
         public Fragment getItem(int position) {
             switch (position) {
                 default:
-                case VIEW_PAGER_ITEM_PROGRAM_STAGES:
+                case TAB_PROGRAM_STAGES:
                     return TeiProgramStageFragment.newInstance(getItemUid(), getProgramUid());
-                case VIEW_PAGER_ITEM_TEI_PROFILE:
+                case TAB_PROFILE:
                     return TeiProfileFragment.newInstance(getItemUid(), getProgramUid());
-                case VIEW_PAGER_ITEM_WIDGETS:
+                case TAB_WIDGETS:
                     return new TeiWidgetFragment();
             }
         }
@@ -326,13 +351,23 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            tabLayout.setScrollPosition(position, positionOffset, false);
+            if (!isRegistrationComplete()) {
+                tabLayout.setScrollPosition(TAB_WIDGETS, 0, true);
+            } else {
+                tabLayout.setScrollPosition(position, positionOffset, true);
+            }
         }
 
         @Override
         public void onPageSelected(int position) {
+            if (!isRegistrationComplete()) {
+                playFabShrinkPopAnimation(floatingActionButton);
+                floatingActionButton.setVisibility(View.GONE);
+                setSelectedTab(TAB_WIDGETS);
+                return;
+            }
             switch (position) {
-                case VIEW_PAGER_ITEM_PROGRAM_STAGES: {
+                case TAB_PROGRAM_STAGES: {
                     if (floatingActionButton != null) {
                         playFabShrinkPopAnimation(floatingActionButton);
                         floatingActionButton.setImageResource(R.drawable.ic_add);
@@ -341,7 +376,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
 
                     break;
                 }
-                case VIEW_PAGER_ITEM_TEI_PROFILE: {
+                case TAB_PROFILE: {
                     if (floatingActionButton != null) {
                         playFabShrinkPopAnimation(floatingActionButton);
                         floatingActionButton.setImageResource(R.drawable.ic_edit_white);
@@ -349,7 +384,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                     }
                     break;
                 }
-                case VIEW_PAGER_ITEM_WIDGETS: {
+                case TAB_WIDGETS: {
                     playFabShrinkPopAnimation(floatingActionButton);
                     floatingActionButton.setVisibility(View.GONE);
                     setSelectedTab(position);

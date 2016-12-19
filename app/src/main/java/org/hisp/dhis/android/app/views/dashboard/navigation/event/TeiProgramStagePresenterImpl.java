@@ -62,13 +62,17 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
         subscription = new CompositeSubscription();
 
+        // TODO: remove this. send eventUid only and let FormSectionPresenter build form from Event/Program
         subscription.add(getEvent(eventUid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Event>() {
                     @Override
                     public void call(final Event event) {
-                        subscription.add(getProgram(event.program()).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Program>() {
+                        subscription.add(getProgram(event.program())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<Program>() {
                             @Override
                             public void call(Program program) {
 

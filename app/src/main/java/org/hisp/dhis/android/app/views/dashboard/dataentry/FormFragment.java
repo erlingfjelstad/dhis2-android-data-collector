@@ -43,6 +43,7 @@ import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.app.views.DataEntryFragment;
 import org.hisp.dhis.android.app.views.FormSectionView;
+import org.hisp.dhis.android.app.views.dashboard.NavigationLockController;
 import org.hisp.dhis.android.app.views.dashboard.RightNavDrawerController;
 import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
@@ -65,6 +66,7 @@ import javax.inject.Inject;
 
 import fr.castorflex.android.circularprogressbar.CircularProgressBar;
 
+import static android.view.View.GONE;
 import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 /**
@@ -72,14 +74,19 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
  */
 public class FormFragment extends Fragment implements FormSectionView, Toolbar.OnMenuItemClickListener {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String ARG_REGISTRATION_COMPLETE = "arg:registrationComplete";
     private static final String ARG_TWO_PANE_LAYOUT = "arg:twoPaneLayout";
     private static final String ARG_FORM = "arg:form";
+    private static final String ARG_ENROLLMENT_UID = "arg:enrollmentUid";
+    private static final String ARG_PROGRAM_UID = "arg:programUid";
 
     // Injected dependencies
     @Inject
     FormSectionPresenter formSectionPresenter;
     @Inject
     RightNavDrawerController rightNavDrawerController;
+    @Inject
+    NavigationLockController navigationLockController;
 
     private CoordinatorLayout coordinatorLayout;
     private TextView textViewReportDate;
@@ -103,14 +110,25 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         // Required empty public constructor
     }
 
-    public static FormFragment newInstance(boolean twoPaneLayout) {
+    public static FormFragment newForm(boolean twoPaneLayout) {
         FormFragment fragment = new FormFragment();
         Bundle arguments = new Bundle();
         arguments.putBoolean(ARG_TWO_PANE_LAYOUT, twoPaneLayout);
+        arguments.putBoolean(ARG_REGISTRATION_COMPLETE, true);
         fragment.setArguments(arguments);
         return fragment;
     }
 
+    public static FormFragment newEnrollmentForm(String enrollmentUid, String programUid, boolean twoPaneLayout) {
+        FormFragment fragment = new FormFragment();
+        Bundle arguments = new Bundle();
+        arguments.putBoolean(ARG_REGISTRATION_COMPLETE, false);
+        arguments.putString(ARG_ENROLLMENT_UID, enrollmentUid);
+        arguments.putString(ARG_PROGRAM_UID, programUid);
+        arguments.putBoolean(ARG_TWO_PANE_LAYOUT, twoPaneLayout);
+        fragment.setArguments(arguments);
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -134,10 +152,19 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         if (savedInstanceState != null && savedInstanceState.containsKey(ARG_FORM)) {
             form = savedInstanceState.getParcelable(ARG_FORM);
             formSectionPresenter.buildForm(form);
+        } else if (!registrationIsComplete()) {
+            Form.Builder formBuilder = new Form.Builder();
+            formBuilder.setDataModelUid(getArguments().getString(ARG_ENROLLMENT_UID));
+            formBuilder.setProgramUid(getArguments().getString(ARG_PROGRAM_UID));
+            formSectionPresenter.buildForm(formBuilder.build());
         }
 
         return rootView;
 
+    }
+
+    private boolean registrationIsComplete() {
+        return getArguments().getBoolean(ARG_REGISTRATION_COMPLETE);
     }
 
     private void setupCoordinatorLayout(View rootView) {
@@ -186,7 +213,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         });
 
         // since coordinates are optional, initially they should be hidden
-        linearLayoutCoordinates.setVisibility(View.GONE);
+        linearLayoutCoordinates.setVisibility(GONE);
     }
 
     @Override
@@ -202,6 +229,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         if (form != null) {
             outState.putParcelable(ARG_FORM, form);
         }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -226,7 +254,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
                                     == PackageManager.PERMISSION_GRANTED) {
                         //either if init or after cancel click:
                         if (locationIcon.getVisibility() == View.VISIBLE
-                                || locationIconCancel.getVisibility() == View.GONE) {
+                                || locationIconCancel.getVisibility() == GONE) {
                             // request location:
                             setLocationButtonState(false);
                             formSectionPresenter.subscribeToLocations();
@@ -276,18 +304,27 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
 
         // hide tab layout initially in order to prevent UI
         // jumps in cases when we don't have sections
-        tabLayout.setVisibility(View.GONE);
+        tabLayout.setVisibility(GONE);
     }
 
     private void setupFloatingActionButton(View rootView) {
         fabComplete = (FloatingActionButton) rootView.findViewById(R.id.fab_complete_event);
-        fabComplete.setVisibility(View.GONE);
+        fabComplete.setVisibility(GONE);
 
         fabComplete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                //TODO: get complete status from model object and do not store state in fab
+                if (!registrationIsComplete()) {
+                    getArguments().putBoolean(ARG_REGISTRATION_COMPLETE, true);
+                    navigationLockController.unlockNavigation();
+                    fabComplete.setVisibility(GONE);
+                    clearForm();
+                    ((TextView) getView().findViewById(R.id.empty_state_placeholder_text)).setText(R.string.enrollment_complete_empty_form);
+                    return;
+                }
+
+                //TODO: get status from model object and do not store state in fab
                 boolean doComplete = !fabComplete.isActivated();
 
                 String snackBarMessage;
@@ -314,12 +351,27 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         });
     }
 
+    private void clearForm() {
+        viewPager.setVisibility(GONE);
+        getView().findViewById(R.id.empty_state_placeholder).setVisibility(View.VISIBLE);
+    }
+
+    private void hideEmptyPlaceholder() {
+        viewPager.setVisibility(View.VISIBLE);
+        getView().findViewById(R.id.empty_state_placeholder).setVisibility(View.GONE);
+    }
+
     private void setEventCompleteStatus(boolean isComplete) {
+
+        EventStatus eventStatus;
+
         if (isComplete) {
-            formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.COMPLETED);
+            eventStatus = EventStatus.COMPLETED;
         } else {
-            formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.ACTIVE);
+            eventStatus = EventStatus.ACTIVE;
         }
+
+        formSectionPresenter.saveEventStatus(form.getDataModelUid(), eventStatus);
     }
 
     @Override
@@ -334,7 +386,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         viewPager.setAdapter(viewPagerAdapter);
 
         // hide tab layout
-        tabLayout.setVisibility(View.GONE);
+        tabLayout.setVisibility(GONE);
     }
 
     @Override
@@ -376,6 +428,8 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
     @Override
     public void showForm(Form form) {
 
+        hideEmptyPlaceholder();
+
         FragmentStatePagerAdapter viewPagerAdapter;
 
         // TODO: Use only one SectionAdapter and let the adapter handle having just one section internally
@@ -402,7 +456,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
         // TODO: wrap TabLayout and Adapter into a separate entity and let it handle its own state?
         int visibility = View.VISIBLE;
         if (form.getFormSections().size() == 1) {
-            visibility = View.GONE;
+            visibility = GONE;
         }
         tabLayout.setVisibility(visibility);
 
@@ -431,7 +485,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
     @Override
     public void showCoordinatesPicker(String latitude, String longitude) {
         if (linearLayoutCoordinates.getVisibility() == View.INVISIBLE ||
-                linearLayoutCoordinates.getVisibility() == View.GONE) {
+                linearLayoutCoordinates.getVisibility() == GONE) {
             linearLayoutCoordinates.setVisibility(View.VISIBLE);
             setupLocationCallback();
         }
@@ -460,7 +514,7 @@ public class FormFragment extends Fragment implements FormSectionView, Toolbar.O
     public void showEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
         if (fabComplete != null && enrollmentStatus != null) {
             fabComplete.setVisibility(View.VISIBLE);
-            fabComplete.setImageResource(R.drawable.ic_add);
+            fabComplete.setImageResource(R.drawable.ic_tick);
             fabComplete.setActivated(EnrollmentStatus.COMPLETED.equals(enrollmentStatus));
         }
     }

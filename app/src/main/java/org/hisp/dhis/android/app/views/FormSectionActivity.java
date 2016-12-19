@@ -106,15 +106,15 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     FilterableDialogFragment sectionDialogFragment;
     AlertDialog alertDialog;
 
-    public static void navigateToNewItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
+    public static void navigateToNewItem(Activity activity, String itemUid, String programUid, String programStageUid, DashboardContextType contextType) {
         navigateToItem(activity, itemUid, programUid, programStageUid, contextType, true);
     }
 
-    public static void navigateToExistingItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
+    public static void navigateToExistingItem(Activity activity, String itemUid, String programUid, String programStageUid, DashboardContextType contextType) {
         navigateToItem(activity, itemUid, programUid, programStageUid, contextType, false);
     }
 
-    private static void navigateToItem(Activity activity, String itemUid, String programUid, String programStageUid, FormSectionContextType contextType, boolean isItemNew) {
+    private static void navigateToItem(Activity activity, String itemUid, String programUid, String programStageUid, DashboardContextType contextType, boolean isItemNew) {
         isNull(activity, "activity must not be null");
 
         Intent intent = new Intent(activity, FormSectionActivity.class);
@@ -207,7 +207,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         formComponent.inject(this);
 
         // start building the form
-        formSectionPresenter.showDataEntryForm(getItemUid(), getProgramUid(), getProgramStageUid());
+        //formSectionPresenter.showDataEntryForm(getItemUid(), getProgramUid(), getProgramStageUid());
 
         setupLocationPermissions();
     }
@@ -433,7 +433,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
 
     @Override
     public List<FormEntity> getInvalidFormEntities() {
-        return ((DataEntryFragment) ((FormSingleSectionAdapter) viewPager.getAdapter()).getItem(0)).getInvalidFormEntities();
+        return new ArrayList<>();
     }
 
     @Override
@@ -568,7 +568,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 boolean isCompleted = fabComplete.isActivated();
                 fabComplete.setActivated(!isCompleted);
 
-                if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
+                if (isCompleted && DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.EXISTING_ITEM)) {
                     incompleteEvent();
 
                     Snackbar.make(coordinatorLayout, getString(R.string.incomplete), Snackbar.LENGTH_LONG)
@@ -580,7 +580,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                                 }
                             })
                             .show();
-                } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
+                } else if (!isCompleted && DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.EXISTING_ITEM)) {
                     completeEvent();
                     Snackbar.make(coordinatorLayout, getString(R.string.complete), Snackbar.LENGTH_LONG)
                             .setAction(getString(R.string.undo), new View.OnClickListener() {
@@ -591,7 +591,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                                 }
                             })
                             .show();
-                } else if (isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+                } else if (isCompleted && DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.REGISTRATION)) {
                     List<FormEntity> invalids = formSectionPresenter.getInvalidFormEntities();
                     if (invalids == null || invalids.isEmpty()) {
                         TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
@@ -603,7 +603,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                         Toast.makeText(FormSectionActivity.this, in, Toast.LENGTH_SHORT).show();
                     }
 
-                } else if (!isCompleted && FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+                } else if (!isCompleted && DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.REGISTRATION)) {
                     List<FormEntity> invalids = formSectionPresenter.getInvalidFormEntities();
                     if (invalids == null || invalids.isEmpty()) {
                         TeiDashboardActivity.navigateTo(FormSectionActivity.this, getItemUid(), getProgramUid());
@@ -678,9 +678,9 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 } else {
                     date = selectedDate;
                 }
-                if (FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REPORT)) {
+                if (DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.EXISTING_ITEM)) {
                     formSectionPresenter.saveEventDate(getItemUid(), date);
-                } else if (FormSectionContextType.valueOf(getContextType()).equals(FormSectionContextType.REGISTRATION)) {
+                } else if (DashboardContextType.valueOf(getContextType()).equals(DashboardContextType.REGISTRATION)) {
                     formSectionPresenter.saveEnrollmentDate(getItemUid(), date);
                 }
             }

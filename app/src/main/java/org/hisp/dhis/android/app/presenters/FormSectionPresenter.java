@@ -23,8 +23,4 @@ public interface FormSectionPresenter extends Presenter {
     void stopLocationUpdates();
 
     List<FormEntity> getInvalidFormEntities();
-
-    void showDataEntryForm(String eventUid, String programUid, String programStageUid);
-
-    void refreshMenuButtonVisibility(boolean visible);
 }

@@ -95,9 +95,11 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     @Override
     public void drawProgramStages(final List<ExpansionPanel> programStages) {
         adapter.swap(programStages);
-
         if (savedInstanceState != null) {
             adapter.onRestoreInstanceState(savedInstanceState);
+        } else {
+            // Expand all Program Stages by default
+            adapter.expandAllParents();
         }
     }
 
