@@ -24,6 +24,7 @@ import org.hisp.dhis.android.app.views.dashboard.navigation.widget.TeiWidgetPres
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
@@ -142,8 +143,9 @@ public class FormModule {
     public TeiProgramStagePresenter providesTeiProgramStagePresenter(
             @Nullable TeiDashboardPresenter teiDashboardPresenter,
             @Nullable ProgramInteractor programInteractor,
-            @Nullable EventInteractor eventInteractor) {
-        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor);
+            @Nullable EventInteractor eventInteractor,
+            @Nullable OrganisationUnitInteractor organisationUnitInteractor) {
+        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor, organisationUnitInteractor);
     }
 
 

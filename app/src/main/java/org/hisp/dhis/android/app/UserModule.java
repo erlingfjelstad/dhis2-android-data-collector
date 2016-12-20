@@ -42,6 +42,7 @@ import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
@@ -133,6 +134,17 @@ public final class UserModule {
     public EventInteractor eventInteractor(D2 d2) {
         if (d2.events() != null) {
             return d2.events();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public OrganisationUnitInteractor organisationUnitInteractor(D2 d2) {
+        if (d2.organisationUnits() != null) {
+            return d2.organisationUnits();
         }
 
         return null;
