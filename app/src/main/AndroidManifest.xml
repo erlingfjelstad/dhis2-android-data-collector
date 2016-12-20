@@ -25,11 +25,11 @@
 
         <activity android:name=".views.FormSectionActivity" />
         <activity android:name=".views.LoginActivity" />
-        <activity
-            android:name=".views.selectedcontent.SelectedContentActivity"
-            />
+        <activity android:name=".views.create.identifiable.CreateIdentifiableItemActivity" />
+        <activity android:name=".views.selectedcontent.SelectedContentActivity" />
 
-        <activity android:name=".views.enrollment.EnrollmentActivity"/>
+        <activity android:name=".views.enrollment.EnrollmentActivity" />
+        <activity android:name=".views.create.event.CreateEventActivity" />
 
         <activity
             android:name=".views.dashboard.trackedentityinstance.TeiDashboardActivity"
@@ -56,7 +56,7 @@
 
         <provider
             android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider"
-            android:authorities="org.hisp.dhis.client.sdk.core"></provider>
+            android:authorities="org.hisp.dhis.client.sdk.core" />
 
     </application>
 

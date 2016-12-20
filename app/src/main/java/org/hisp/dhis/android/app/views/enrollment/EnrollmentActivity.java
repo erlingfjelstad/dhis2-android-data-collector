@@ -13,10 +13,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
 import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
@@ -174,8 +174,9 @@ public class EnrollmentActivity extends AppCompatActivity implements EnrollmentV
     }
 
     @Override
-    public void navigateToCreateNewEnrollment(String trackedEntityInstanceUid) {
-        Toast.makeText(this, "very enrollment", Toast.LENGTH_SHORT).show();
+    public void navigateToCreateNewEnrollment(String contentId, String identifiableId) {
+        CreateIdentifiableItemActivity.navigateToNewItemForInstance(this, contentId, identifiableId, "Enrollment");
+        finish();
     }
 
     private String getTrackedEntityInstanceUid() {

@@ -6,6 +6,7 @@ import org.hisp.dhis.android.app.PerActivity;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
 
 import dagger.Module;
 import dagger.Provides;
@@ -22,7 +23,8 @@ public class EnrollmentModule {
     public EnrollmentPresenter providesEnrollmentPresenter(
             @Nullable EnrollmentInteractor enrollmentInteractor,
             @Nullable ProgramInteractor programInteractor,
+            @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
             @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor) {
-        return new EnrollmentPresenterImpl(enrollmentInteractor, programInteractor, trackedEntityAttributeValueInteractor);
+        return new EnrollmentPresenterImpl(enrollmentInteractor, programInteractor, trackedEntityInstanceInteractor, trackedEntityAttributeValueInteractor);
     }
 }

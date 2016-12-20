@@ -20,7 +20,7 @@ public interface EnrollmentView extends View {
 
     void navigateToTeiDashboardWithEnrollment(String programUid, String enrollmentUid);
 
-    void navigateToCreateNewEnrollment(String trackedEntityInstanceUid);
+    void navigateToCreateNewEnrollment(String trackedEntityInstanceUid, String uid);
 
     String getString(@StringId String stringId);
 

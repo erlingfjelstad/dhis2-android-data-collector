@@ -30,6 +30,8 @@ package org.hisp.dhis.android.app;
 
 import org.hisp.dhis.android.app.model.SyncAdapter;
 import org.hisp.dhis.android.app.views.SelectorFragment;
+import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
+import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
 import org.hisp.dhis.android.app.views.dashboard.DashboardFragment;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentComponent;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentModule;
@@ -64,5 +66,9 @@ public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.comm
     void inject(DashboardFragment dashboardFragment);
 
     void inject(SelectedContentFragment selectedContentFragment);
+
+    void inject(CreateIdentifiableItemActivity createIdentifiableItemActivity);
+
+    void inject(CreateEventActivity createEventActivity);
 }
 

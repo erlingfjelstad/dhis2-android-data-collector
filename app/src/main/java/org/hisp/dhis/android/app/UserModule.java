@@ -34,6 +34,10 @@ import android.content.Context;
 import org.hisp.dhis.android.app.model.SyncWrapper;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
 import org.hisp.dhis.android.app.presenters.SelectorPresenterImpl;
+import org.hisp.dhis.android.app.views.create.event.CreateEventPresenter;
+import org.hisp.dhis.android.app.views.create.event.CreateEventPresenterImpl;
+import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemPresenter;
+import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemPresenterImpl;
 import org.hisp.dhis.android.app.views.dashboard.DashboardPresenter;
 import org.hisp.dhis.android.app.views.dashboard.DashboardPresenterImpl;
 import org.hisp.dhis.android.app.views.selectedcontent.SelectedContentPresenter;
@@ -273,7 +277,21 @@ public final class UserModule {
                                                              ApiExceptionHandler apiExceptionHandler,
                                                              Logger logger) {
         return new SelectedContentPresenterImpl(syncWrapper, sdkInstance.trackedEntityInstances(),
-                sdkInstance.trackedEntityAttributeValues(), sdkInstance.programs(),
-                apiExceptionHandler, logger);
+                sdkInstance.trackedEntityAttributeValues(), sdkInstance.organisationUnits(), sdkInstance.programs(),
+                apiExceptionHandler, logger, sdkInstance.events(), sdkInstance.trackedEntityDataValues(), sdkInstance.enrollments());
+    }
+
+    @Provides
+    @PerUser
+    public CreateIdentifiableItemPresenter createItemPresenter(SessionPreferences sessionPreferences) {
+        return new CreateIdentifiableItemPresenterImpl(sdkInstance.trackedEntityInstances(), sdkInstance.organisationUnits(),
+                sdkInstance.programs(), sdkInstance.enrollments(), sdkInstance.events(), sessionPreferences);
+    }
+
+    @Provides
+    @PerUser
+    public CreateEventPresenter createEventPresenter(SessionPreferences sessionPreferences) {
+        return new CreateEventPresenterImpl(sdkInstance.trackedEntityInstances(), sdkInstance.organisationUnits(),
+                sdkInstance.programs(), sdkInstance.enrollments(), sdkInstance.events(), sessionPreferences);
     }
 }

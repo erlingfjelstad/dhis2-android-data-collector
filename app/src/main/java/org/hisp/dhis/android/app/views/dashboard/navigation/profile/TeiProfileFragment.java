@@ -101,11 +101,11 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
 //
 //    private String getProgramUid() {
 //        if (getArguments() == null || getArguments()
-//                .getString(ARG_PROGRAM_UID, null) == null) {
+//                .getString(ARG_CONTENT_ID, null) == null) {
 //            throw new IllegalArgumentException("You must pass program uid in intent extras");
 //        }
 //
-//        return getArguments().getString(ARG_PROGRAM_UID, null);
+//        return getArguments().getString(ARG_CONTENT_ID, null);
 //    }
 
     @Override

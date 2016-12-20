@@ -14,7 +14,7 @@ import org.hisp.dhis.client.sdk.ui.fragments.BaseFragment;
 
 public abstract class AbsTeiNavigationSectionFragment extends BaseFragment {
     protected static final String ARG_ITEM_UID = "arg:itemUid";
-//    private static final String ARG_PROGRAM_UID = "arg:programUid";
+//    private static final String ARG_CONTENT_ID = "arg:programUid";
 
     protected static final String ARG_ENROLLMENT_UID = "arg:enrollmentUid";
     protected static final String ARG_PROGRAM_UID = "arg:programUid";

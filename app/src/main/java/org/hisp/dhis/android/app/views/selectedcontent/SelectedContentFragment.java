@@ -2,7 +2,6 @@ package org.hisp.dhis.android.app.views.selectedcontent;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -20,9 +19,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
+
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.FormSectionActivity;
+import org.hisp.dhis.android.app.views.FormSectionContextType;
+import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
+import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
+import org.hisp.dhis.android.app.views.enrollment.EnrollmentActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
+import org.hisp.dhis.client.sdk.ui.models.ContentEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.ui.views.DividerDecoration;
@@ -67,6 +75,8 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     private RecyclerView recyclerView;
     private ReportEntityAdapter reportEntityAdapter;
     private FloatingActionButton floatingActionButton;
+    private FloatingActionMenu floatingActionMenu;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -124,16 +134,30 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
         reportEntityAdapter.setOnReportEntityInteractionListener(new ReportEntityAdapter.OnReportEntityInteractionListener() {
             @Override
             public void onReportEntityClicked(ReportEntity reportEntity) {
-//                SelectorFragment.this.onReportEntityClicked(reportEntity);
+                SelectedContentFragment.this.onReportEntityClicked(reportEntity);
             }
 
             @Override
             public void onDeleteReportEntity(ReportEntity reportEntity) {
                 logger.d(TAG, "ReportEntity id to be deleted: " + reportEntity.getId());
-//                selectedContentPresenter.deleteItem(reportEntity, getProgramUid());
+                selectedContentPresenter.deleteItem(reportEntity, getContentType());
             }
         });
-        selectedContentPresenter.configureFilters();
+        selectedContentPresenter.configureFilters(getContentId(), getContentType());
+
+    }
+
+    private void onReportEntityClicked(ReportEntity reportEntity) {
+        switch (getContentType()) {
+            case ContentEntity.TYPE_TRACKED_ENTITY: {
+                EnrollmentActivity.navigateToForTrackedEntityInstance(getActivity(), reportEntity.getId());
+                break;
+            }
+            case ContentEntity.TYPE_PROGRAM: {
+                FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getContentId(), null, FormSectionContextType.REGISTRATION);
+                break;
+            }
+        }
 
     }
 
@@ -160,14 +184,15 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     }
 
     private void setUpFloatingActionButton(View view) {
-        floatingActionButton = (FloatingActionButton) view.findViewById(R.id.fab_create_item);
+        floatingActionButton = (com.github.clans.fab.FloatingActionButton) view.findViewById(R.id.fab_create_item);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Navigate to CreateActivity
-                Toast.makeText(v.getContext(), "Navigate to createActivity", Toast.LENGTH_SHORT).show();
+                selectedContentPresenter.navigate(getContentId(), getContentTitle(), getContentType());
             }
         });
+
+        selectedContentPresenter.configureFloatingActionMenu(getContentId());
     }
 
     private void setupToolbar(View view) {
@@ -284,7 +309,41 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     public void notifyFiltersChanged(List<ReportEntityFilter> reportEntityFilters) {
         reportEntityAdapter.notifyFiltersChanged(reportEntityFilters);
 
-        selectedContentPresenter.updateContents(getContentId());
+        selectedContentPresenter.updateContents(getContentId(), getContentType());
+    }
+
+    @Override
+    public void setActionsToFab(List<ContentEntity> contentEntities) {
+//        for (ContentEntity contentEntity : contentEntities) {
+//            FloatingActionButton floatingActionButton = new FloatingActionButton(getContext());
+//            floatingActionButton.setLabelText(contentEntity.getTitle());
+//
+//            floatingActionMenu.addMenuButton(floatingActionButton);
+//        }
+
+
+    }
+
+    @Override
+    public void navigateTo(String contentId, String contentTitle) {
+        switch (getContentType()) {
+            case ContentEntity.TYPE_TRACKED_ENTITY: {
+                CreateIdentifiableItemActivity.navigateTo(getActivity(), getContentId(), getContentTitle());
+                break;
+            }
+            case ContentEntity.TYPE_PROGRAM: {
+                CreateEventActivity.navigateTo(getActivity(), contentId, null, getContentTitle());
+                break;
+            }
+            default:
+                break;
+        }
+
+    }
+
+    @Override
+    public void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, FormSectionContextType contextType) {
+        FormSectionActivity.navigateToNewItem(getActivity(), contentId, contentTitle, uid, contextType);
     }
 
     private void showErrorDialog(String title, String message) {

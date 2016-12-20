@@ -38,16 +38,27 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
 
+    <!--<com.github.clans.fab.FloatingActionMenu-->
+        <!--android:id="@+id/fab_create_item_menu"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_margin="@dimen/keyline_default"-->
+        <!--android:src="@drawable/ic_add"-->
+        <!--app:elevation="8dp"-->
+        <!--app:layout_anchor="@id/swiperefreshlayout_selected_content"-->
+        <!--app:layout_anchorGravity="bottom|right|end"-->
+        <!--app:pressedTranslationZ="8dp">-->
 
+    <!--</com.github.clans.fab.FloatingActionMenu>-->
 
-    <android.support.design.widget.FloatingActionButton
+    <com.github.clans.fab.FloatingActionButton
         android:id="@+id/fab_create_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/keyline_default"
         android:src="@drawable/ic_add"
-        app:elevation="8dp"
         app:layout_anchor="@id/swiperefreshlayout_selected_content"
+        app:elevation="8dp"
         app:layout_anchorGravity="bottom|right|end"
         app:pressedTranslationZ="8dp" />
 
