@@ -270,6 +270,12 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     }
 
     @Override
+    public void onReportEntityDeletionError(ReportEntity reportEntity) {
+        Toast.makeText(getContext(), R.string.report_entity_deletion_error, Toast.LENGTH_SHORT).show();
+        reportEntityAdapter.addItem(reportEntity);
+    }
+
+    @Override
     public void showReportEntities(List<ReportEntity> reportEntities) {
         logger.d(TAG, "amount of report entities: " + reportEntities.size());
         reportEntityAdapter.swapData(reportEntities);

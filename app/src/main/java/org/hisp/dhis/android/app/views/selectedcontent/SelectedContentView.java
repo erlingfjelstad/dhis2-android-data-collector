@@ -26,4 +26,6 @@ public interface SelectedContentView extends View {
     void navigateTo(String contentId, String contentTitle);
 
     void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, DashboardContextType contextType);
+
+    void onReportEntityDeletionError(ReportEntity failedEntity);
 }

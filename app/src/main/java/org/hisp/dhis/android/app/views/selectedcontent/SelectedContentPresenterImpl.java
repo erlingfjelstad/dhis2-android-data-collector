@@ -418,14 +418,82 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
     public void deleteItem(ReportEntity reportEntity, String contentType) {
         switch (contentType) {
             case ContentEntity.TYPE_TRACKED_ENTITY: {
-
+                deleteTrackedEntityInstance(reportEntity);
                 break;
             }
             case ContentEntity.TYPE_PROGRAM: {
-
+                deleteEnrollment(reportEntity);
                 break;
             }
         }
+    }
+
+    private void deleteTrackedEntityInstance(final ReportEntity reportEntity) {
+        subscription.add(getTrackedEntityInstance(reportEntity.getId())
+                .switchMap(new Func1<TrackedEntityInstance, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(TrackedEntityInstance trackedEntityInstance) {
+                        int itemDeleted = trackedEntityInstanceInteractor.store().delete(trackedEntityInstance);
+
+                        if (itemDeleted > 0) {
+                            return Observable.just(true);
+                        } else return Observable.just(false);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        logger.d(TAG, "Tracked Entity Instance deleted");
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Error deleting tracked entity instance: " + reportEntity, throwable);
+                        if (selectedContentView != null) {
+                            selectedContentView.onReportEntityDeletionError(reportEntity);
+                        }
+                    }
+                }));
+    }
+
+    private Observable<TrackedEntityInstance> getTrackedEntityInstance(String uid) {
+        return Observable.just(trackedEntityInstanceInteractor.store().queryByUid(uid));
+    }
+
+    private void deleteEnrollment(final ReportEntity reportEntity) {
+        subscription.add(getEnrollment(reportEntity.getId())
+                .switchMap(new Func1<Enrollment, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(Enrollment enrollment) {
+                        int itemDeleted = enrollmentInteractor.store().delete(enrollment);
+
+                        if (itemDeleted > 0) {
+                            return Observable.just(true);
+                        } else return Observable.just(false);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        logger.d(TAG, "Enrollment deleted");
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Error deleting enrollment: " + reportEntity, throwable);
+                        if (selectedContentView != null) {
+                            selectedContentView.onReportEntityDeletionError(reportEntity);
+                        }
+                    }
+                }));
+    }
+
+    private Observable<Enrollment> getEnrollment(String uid) {
+        return Observable.just(enrollmentInteractor.store().query(uid));
     }
 
     private Map<String, String> toMap(List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
