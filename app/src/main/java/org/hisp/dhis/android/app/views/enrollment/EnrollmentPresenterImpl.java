@@ -12,7 +12,9 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
+import org.hisp.dhis.client.sdk.utils.LocaleUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +30,8 @@ public class EnrollmentPresenterImpl implements EnrollmentPresenter {
 
     private final String TAG = this.getClass().getSimpleName();
     private static final String PROGRAM_KEY = "program";
+    private static final String DATE_FORMAT = "yyyy-MM-dd h:mm";
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT, LocaleUtils.getLocale());
 
     private final EnrollmentInteractor enrollmentInteractor;
     private final ProgramInteractor programInteractor;
@@ -107,7 +111,7 @@ public class EnrollmentPresenterImpl implements EnrollmentPresenter {
 
                             trackedEntityAttributeValuesToShowInReportEntity.put(PROGRAM_KEY, program.displayName());
                             trackedEntityAttributeValuesToShowInReportEntity.put(program.enrollmentDateLabel(),
-                                    enrollment.dateOfEnrollment().toString());
+                                    SIMPLE_DATE_FORMAT.format(enrollment.dateOfEnrollment()));
                             trackedEntityAttributeValuesToShowInReportEntity.put(ReportEntityFilter.STATUS_KEY, enrollment.enrollmentStatus().toString());
 
                             ReportEntity reportEntity = new ReportEntity(enrollment.uid(), ReportEntity.Status.SENT, trackedEntityAttributeValuesToShowInReportEntity);

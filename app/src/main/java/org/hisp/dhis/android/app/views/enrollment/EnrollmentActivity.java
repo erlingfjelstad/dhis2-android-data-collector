@@ -100,6 +100,7 @@ public class EnrollmentActivity extends AppCompatActivity implements EnrollmentV
     private void setupRecyclerView() {
         reportEntityRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_enrollment);
         reportEntityAdapter = new ReportEntityAdapter(this);
+        reportEntityAdapter.setHideLabelsWithoutValues(true);
         reportEntityAdapter.setOnReportEntityInteractionListener(new ReportEntityAdapter.OnReportEntityInteractionListener() {
             @Override
             public void onReportEntityClicked(ReportEntity reportEntity) {
