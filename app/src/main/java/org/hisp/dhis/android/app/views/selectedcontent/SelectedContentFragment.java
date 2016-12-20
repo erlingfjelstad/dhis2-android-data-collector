@@ -2,6 +2,7 @@ package org.hisp.dhis.android.app.views.selectedcontent;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -18,9 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
-import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
@@ -75,7 +73,7 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     private RecyclerView recyclerView;
     private ReportEntityAdapter reportEntityAdapter;
     private FloatingActionButton floatingActionButton;
-    private FloatingActionMenu floatingActionMenu;
+//    private FloatingActionMenu floatingActionMenu;
 
 
     @Override
@@ -184,7 +182,7 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     }
 
     private void setUpFloatingActionButton(View view) {
-        floatingActionButton = (com.github.clans.fab.FloatingActionButton) view.findViewById(R.id.fab_create_item);
+        floatingActionButton = (FloatingActionButton) view.findViewById(R.id.fab_create_item);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -51,7 +51,7 @@
 
     <!--</com.github.clans.fab.FloatingActionMenu>-->
 
-    <com.github.clans.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_create_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
