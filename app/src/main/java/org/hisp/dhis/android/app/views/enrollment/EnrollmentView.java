@@ -22,6 +22,8 @@ public interface EnrollmentView extends View {
 
     void navigateToCreateNewEnrollment(String trackedEntityInstanceUid, String uid);
 
+    void onReportEntityDeletionError(ReportEntity failedEntity);
+
     String getString(@StringId String stringId);
 
     @Retention(RetentionPolicy.SOURCE)

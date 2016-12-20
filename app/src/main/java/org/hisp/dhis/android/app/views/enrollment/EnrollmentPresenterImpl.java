@@ -10,9 +10,11 @@ import org.hisp.dhis.client.sdk.models.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.ContentEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.LocaleUtils;
+import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.Map;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
@@ -37,15 +40,17 @@ public class EnrollmentPresenterImpl implements EnrollmentPresenter {
     private final ProgramInteractor programInteractor;
     private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
     private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
+    private final Logger logger;
     CompositeSubscription subscription;
 
     EnrollmentView enrollmentView;
 
-    public EnrollmentPresenterImpl(EnrollmentInteractor enrollmentInteractor, ProgramInteractor programInteractor, TrackedEntityInstanceInteractor trackedEntityInstanceInteractor, TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor) {
+    public EnrollmentPresenterImpl(EnrollmentInteractor enrollmentInteractor, ProgramInteractor programInteractor, TrackedEntityInstanceInteractor trackedEntityInstanceInteractor, TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor, Logger logger) {
         this.enrollmentInteractor = enrollmentInteractor;
         this.programInteractor = programInteractor;
         this.trackedEntityInstanceInteractor = trackedEntityInstanceInteractor;
         this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
+        this.logger = logger;
     }
 
     @Override
@@ -114,7 +119,7 @@ public class EnrollmentPresenterImpl implements EnrollmentPresenter {
                                     SIMPLE_DATE_FORMAT.format(enrollment.dateOfEnrollment()));
                             trackedEntityAttributeValuesToShowInReportEntity.put(ReportEntityFilter.STATUS_KEY, enrollment.enrollmentStatus().toString());
 
-                            ReportEntity reportEntity = new ReportEntity(enrollment.uid(), ReportEntity.Status.SENT, trackedEntityAttributeValuesToShowInReportEntity);
+                            ReportEntity reportEntity = new ReportEntity(enrollment.uid(), ReportEntity.Status.valueOf(enrollment.state().toString()), trackedEntityAttributeValuesToShowInReportEntity);
                             enrollmentReportEntities.add(reportEntity);
                         }
 
@@ -152,5 +157,44 @@ public class EnrollmentPresenterImpl implements EnrollmentPresenter {
                             }
                         }));
 
+    }
+
+    @Override
+    public void deleteItem(ReportEntity reportEntity) {
+        deleteEnrollment(reportEntity);
+    }
+
+    private void deleteEnrollment(final ReportEntity reportEntity) {
+        subscription.add(getEnrollment(reportEntity.getId())
+                .switchMap(new Func1<Enrollment, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(Enrollment enrollment) {
+                        int itemDeleted = enrollmentInteractor.store().delete(enrollment);
+
+                        if (itemDeleted > 0) {
+                            return Observable.just(true);
+                        } else return Observable.just(false);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        logger.d(TAG, "Enrollment deleted");
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.e(TAG, "Error deleting enrollment: " + reportEntity, throwable);
+                        if (enrollmentView != null) {
+                            enrollmentView.onReportEntityDeletionError(reportEntity);
+                        }
+                    }
+                }));
+    }
+
+    private Observable<Enrollment> getEnrollment(String uid) {
+        return Observable.just(enrollmentInteractor.store().query(uid));
     }
 }

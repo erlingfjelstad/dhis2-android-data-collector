@@ -13,12 +13,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
 import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
+import org.hisp.dhis.client.sdk.ui.models.ContentEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.ui.views.DividerDecoration;
@@ -109,7 +111,7 @@ public class EnrollmentActivity extends AppCompatActivity implements EnrollmentV
 
             @Override
             public void onDeleteReportEntity(ReportEntity reportEntity) {
-
+                enrollmentPresenter.deleteItem(reportEntity);
             }
         });
         reportEntityRecyclerView.setAdapter(reportEntityAdapter);
@@ -195,5 +197,11 @@ public class EnrollmentActivity extends AppCompatActivity implements EnrollmentV
         public void onClick(View v) {
             enrollmentPresenter.createNewEnrollment(getTrackedEntityInstanceUid());
         }
+    }
+
+    @Override
+    public void onReportEntityDeletionError(ReportEntity reportEntity) {
+        Toast.makeText(this, R.string.report_entity_deletion_error, Toast.LENGTH_SHORT).show();
+        reportEntityAdapter.addItem(reportEntity);
     }
 }

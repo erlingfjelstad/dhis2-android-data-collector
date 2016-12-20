@@ -7,4 +7,5 @@ interface EnrollmentPresenter extends Presenter {
     void drawEnrollments(String trackedEntityInstanceUid);
     void navigateToEnrollment(ReportEntity reportEntity, String trackedEntityInstanceUid);
     void createNewEnrollment(String trackedEntityInstanceUid);
+    void deleteItem(ReportEntity reportEntity);
 }

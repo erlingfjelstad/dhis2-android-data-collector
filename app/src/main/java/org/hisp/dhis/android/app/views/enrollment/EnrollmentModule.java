@@ -7,6 +7,7 @@ import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
+import org.hisp.dhis.client.sdk.utils.Logger;
 
 import dagger.Module;
 import dagger.Provides;
@@ -24,7 +25,8 @@ public class EnrollmentModule {
             @Nullable EnrollmentInteractor enrollmentInteractor,
             @Nullable ProgramInteractor programInteractor,
             @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
-            @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor) {
-        return new EnrollmentPresenterImpl(enrollmentInteractor, programInteractor, trackedEntityInstanceInteractor, trackedEntityAttributeValueInteractor);
+            @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
+            @Nullable Logger logger) {
+        return new EnrollmentPresenterImpl(enrollmentInteractor, programInteractor, trackedEntityInstanceInteractor, trackedEntityAttributeValueInteractor, logger);
     }
 }
