@@ -22,8 +22,8 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.DashboardContextType;
 import org.hisp.dhis.android.app.views.FormSectionActivity;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
 import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentActivity;
@@ -152,7 +152,7 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
                 break;
             }
             case ContentEntity.TYPE_PROGRAM: {
-                FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getContentId(), null, FormSectionContextType.REGISTRATION);
+                FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getContentId(), null, DashboardContextType.REGISTRATION);
                 break;
             }
         }
@@ -340,7 +340,7 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     }
 
     @Override
-    public void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, FormSectionContextType contextType) {
+    public void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, DashboardContextType contextType) {
         FormSectionActivity.navigateToNewItem(getActivity(), contentId, contentTitle, uid, contextType);
     }
 

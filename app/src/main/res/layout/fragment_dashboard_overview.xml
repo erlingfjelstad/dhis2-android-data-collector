@@ -74,6 +74,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     android:background="?attr/colorPrimary"
+                    android:navigationIcon="@drawable/ic_arrow_forward"
                     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                     app:layout_collapseMode="pin"
                     app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
@@ -118,15 +119,15 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_tei_dashboard"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/keyline_default"
-        app:backgroundTint="@color/color_accent_default"
-        app:elevation="8dp"
-        app:layout_anchor="@id/view_pager"
-        app:layout_anchorGravity="bottom|right|end"
-        app:pressedTranslationZ="8dp"/>
+            android:id="@+id/fab_tei_dashboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/keyline_default"
+            app:backgroundTint="@color/color_accent_default"
+            app:elevation="8dp"
+            app:layout_anchor="@id/view_pager"
+            app:layout_anchorGravity="bottom|right|end"
+            app:pressedTranslationZ="8dp" />
 
     </android.support.design.widget.CoordinatorLayout>
 </LinearLayout>

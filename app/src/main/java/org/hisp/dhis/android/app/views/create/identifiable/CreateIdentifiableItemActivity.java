@@ -11,8 +11,8 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.DashboardContextType;
 import org.hisp.dhis.android.app.views.FormSectionActivity;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityFilter;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowView;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowViewHolder;
@@ -152,7 +152,7 @@ public class CreateIdentifiableItemActivity extends AppCompatActivity implements
 
     @Override
     public void itemCreated(String itemUid, String programUid) {
-        FormSectionActivity.navigateToNewItem(this, itemUid, programUid, null, FormSectionContextType.REGISTRATION);
+        FormSectionActivity.navigateToNewItem(this, itemUid, programUid, null, DashboardContextType.REGISTRATION);
         finish();
     }
 

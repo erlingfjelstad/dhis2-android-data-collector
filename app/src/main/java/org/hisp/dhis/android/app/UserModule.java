@@ -46,6 +46,7 @@ import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
@@ -55,6 +56,9 @@ import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandlerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultAppAccountManager;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultAppAccountManagerImpl;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultNotificationHandlerImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
@@ -133,6 +137,17 @@ public final class UserModule {
     public EventInteractor eventInteractor(D2 d2) {
         if (d2.events() != null) {
             return d2.events();
+        }
+
+        return null;
+    }
+
+    @Provides
+    @PerUser
+    @Nullable
+    public OrganisationUnitInteractor organisationUnitInteractor(D2 d2) {
+        if (d2.organisationUnits() != null) {
+            return d2.organisationUnits();
         }
 
         return null;
@@ -228,8 +243,14 @@ public final class UserModule {
 
     @Provides
     @PerUser
+    public DefaultAppAccountManager defaultAppAccountManager(@Nullable UserInteractor userInteractor, Logger logger) {
+        return new DefaultAppAccountManagerImpl(sdkInstance.application().getApplicationContext(), appPreferences(), userInteractor, sdkInstance.application().getString(R.string.authority), sdkInstance.application().getString(R.string.account_type), logger);
+    }
+
+    @Provides
+    @PerUser
     public ProfilePresenter profilePresenter(@Nullable UserInteractor userInteractor, Logger logger) {
-        return new ProfilePresenterImpl(userInteractor, null, null, null, logger);
+        return new ProfilePresenterImpl(userInteractor, syncDateWrapper(appPreferences()), defaultAppAccountManager(userInteractor, logger), new DefaultNotificationHandlerImpl(sdkInstance.application().getApplicationContext()), logger);
     }
 
     @Provides
@@ -294,4 +315,5 @@ public final class UserModule {
         return new CreateEventPresenterImpl(sdkInstance.trackedEntityInstances(), sdkInstance.organisationUnits(),
                 sdkInstance.programs(), sdkInstance.enrollments(), sdkInstance.events(), sessionPreferences);
     }
+    
 }

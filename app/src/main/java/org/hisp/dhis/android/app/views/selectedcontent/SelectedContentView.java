@@ -1,6 +1,6 @@
 package org.hisp.dhis.android.app.views.selectedcontent;
 
-import org.hisp.dhis.android.app.views.FormSectionContextType;
+import org.hisp.dhis.android.app.views.DashboardContextType;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ContentEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
@@ -25,5 +25,5 @@ public interface SelectedContentView extends View {
 
     void navigateTo(String contentId, String contentTitle);
 
-    void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, FormSectionContextType contextType);
+    void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, DashboardContextType contextType);
 }

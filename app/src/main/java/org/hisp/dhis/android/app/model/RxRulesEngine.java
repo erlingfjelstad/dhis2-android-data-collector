@@ -30,7 +30,6 @@ import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
 
 import static org.hisp.dhis.client.sdk.core.ModelUtils.toEventMap;
-import static org.hisp.dhis.client.sdk.core.ModelUtils.toMap;
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class RxRulesEngine {
@@ -224,7 +223,6 @@ public class RxRulesEngine {
 
         return Observable.just(ruleEngine);
     }
-
 
     private Observable<Boolean> applyRuleEffects(
             final Event event, final String username, final List<RuleEffect> ruleEffects) {

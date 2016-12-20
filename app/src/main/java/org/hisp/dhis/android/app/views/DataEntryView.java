@@ -10,4 +10,6 @@ public interface DataEntryView extends View {
     void showDataEntryForm(List<FormEntity> formEntities, List<FormEntityAction> actions);
 
     void updateDataEntryForm(List<FormEntityAction> formEntityActions);
+
+    List<FormEntity> getInvalidFormEntities();
 }

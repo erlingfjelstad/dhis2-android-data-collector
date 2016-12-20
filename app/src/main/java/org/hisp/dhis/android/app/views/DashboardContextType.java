@@ -1,6 +1,6 @@
 package org.hisp.dhis.android.app.views;
 
-public enum FormSectionContextType {
+public enum DashboardContextType {
     REGISTRATION,
-    REPORT
+    EXISTING_ITEM
 }

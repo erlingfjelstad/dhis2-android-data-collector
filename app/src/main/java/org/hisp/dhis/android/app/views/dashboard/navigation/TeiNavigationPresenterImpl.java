@@ -1,21 +1,30 @@
 package org.hisp.dhis.android.app.views.dashboard.navigation;
 
 import org.hisp.dhis.android.app.views.dashboard.navigation.profile.TeiProfilePresenter;
+import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardPresenter;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityAttributeValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityInstanceInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.enrollment.Enrollment;
+import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
+import org.hisp.dhis.client.sdk.utils.CodeGenerator;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,21 +43,30 @@ import rx.subscriptions.CompositeSubscription;
 public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
 
     private static final String TAG = TeiNavigationPresenterImpl.class.getSimpleName();
-    TeiNavigationView teiNavigationView;
-    private CompositeSubscription subscription;
-    TeiProfilePresenter teiProfilePresenter;
 
+    private TeiNavigationView teiNavigationView;
+    private CompositeSubscription subscription;
+
+    private final TeiDashboardPresenter teiDashboardPresenter;
+    private final TeiProfilePresenter teiProfilePresenter;
     private final EnrollmentInteractor enrollmentInteractor;
+    private final EventInteractor eventInteractor;
     private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
     private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
     private final ProgramInteractor programInteractor;
     private final Logger logger;
 
-    public TeiNavigationPresenterImpl(EnrollmentInteractor enrollmentInteractor,
+    public TeiNavigationPresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
+                                      TeiProfilePresenter teiProfilePresenter,
+                                      EnrollmentInteractor enrollmentInteractor,
+                                      EventInteractor eventInteractor,
                                       TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
                                       TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
                                       ProgramInteractor programInteractor, Logger logger) {
+        this.teiDashboardPresenter = teiDashboardPresenter;
+        this.teiProfilePresenter = teiProfilePresenter;
         this.enrollmentInteractor = enrollmentInteractor;
+        this.eventInteractor = eventInteractor;
         this.trackedEntityInstanceInteractor = trackedEntityInstanceInteractor;
         this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
         this.programInteractor = programInteractor;
@@ -95,7 +113,8 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
                                 if (trackedEntityAttributeMap.containsKey(trackedEntityAttributeValue.trackedEntityAttributeUid())) {
                                     TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeMap.get(trackedEntityAttributeValue.trackedEntityAttributeUid());
                                     if (trackedEntityAttribute.displayName() != null) {
-                                        FormEntityText formEntityText = new FormEntityText(trackedEntityAttribute.displayName(), trackedEntityAttributeValue.value());
+                                        FormEntityText formEntityText = new FormEntityText(trackedEntityAttribute.uid(), trackedEntityAttribute.displayName());
+                                        formEntityText.setValue(trackedEntityAttributeValue.value(), false);
                                         formEntities.add(formEntityText);
                                     }
                                 }
@@ -129,8 +148,38 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
     }
 
     @Override
-    public void attachProfilePresenter(TeiProfilePresenter teiProfilePresenter) {
-        this.teiProfilePresenter = teiProfilePresenter;
+    public void createNewEvent(final String programUid, final String programStageUid, String orgUnitUid, String enrollmentUid) {
+        String trackedEntityInstance = enrollmentInteractor.store().query(enrollmentUid).trackedEntityInstance();
+
+        Event.Builder builder = Event.builder()
+                .uid(CodeGenerator.generateCode())
+                .created(Calendar.getInstance().getTime())
+                .state(State.TO_POST)
+                .organisationUnit(orgUnitUid)
+                .trackedEntityInstance(trackedEntityInstance)
+                .enrollmentUid(enrollmentUid)
+                .program(programUid)
+                .programStage(programStageUid)
+                .status(EventStatus.ACTIVE);
+
+        Date eventDate = Calendar.getInstance().getTime();
+        builder.eventDate(eventDate);
+
+        final Event event = builder.build();
+
+        Observable.just(eventInteractor.store().save(event)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean) {
+                Form.Builder formBuilder = new Form.Builder()
+                        .setDataModelUid(event.uid())
+                        .setProgramUid(programUid)
+                        .setProgramStageUid(programStageUid);
+
+                teiDashboardPresenter.showForm(formBuilder.build());
+            }
+        });
+
+
     }
 
     private Observable<Enrollment> getEnrollment(final String enrollmentUid) {

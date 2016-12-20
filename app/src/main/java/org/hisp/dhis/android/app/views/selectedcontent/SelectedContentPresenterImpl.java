@@ -2,7 +2,7 @@ package org.hisp.dhis.android.app.views.selectedcontent;
 
 import org.hisp.dhis.android.app.DataUtils;
 import org.hisp.dhis.android.app.model.SyncWrapper;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
+import org.hisp.dhis.android.app.views.DashboardContextType;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
@@ -354,7 +354,7 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
 
                                                 selectedContentView.navigateToFormSectionActivity(
                                                         event.uid(), program.uid(),
-                                                        programStage.uid(), FormSectionContextType.REPORT);
+                                                        programStage.uid(), DashboardContextType.EXISTING_ITEM);
                                                 break;
                                             }
                                         }

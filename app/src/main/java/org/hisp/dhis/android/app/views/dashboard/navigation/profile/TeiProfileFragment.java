@@ -90,7 +90,7 @@ public class TeiProfileFragment extends AbsTeiNavigationSectionFragment implemen
 
 
     //TODO: Review if we should still keep this in AbsTeiNavigationSectionFragment
-//    private String getItemUid() {
+//    private String getEventUid() {
 //        if (getArguments() == null || getArguments()
 //                .getString(ARG_ITEM_UID, null) == null) {
 //            throw new IllegalArgumentException("You must pass item uid in intent extras");

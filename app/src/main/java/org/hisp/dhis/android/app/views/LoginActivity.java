@@ -17,6 +17,5 @@ public class LoginActivity extends DefaultLoginActivity {
         getServerUrl().setText(BuildConfig.SERVER_URL);
         getUsername().setText(BuildConfig.USERNAME);
         getPassword().setText(BuildConfig.PASSWORD);
-
     }
 }

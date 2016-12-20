@@ -7,4 +7,8 @@ public interface TeiDashboardView extends View {
     void closeDrawer();
 
     void openDrawer();
+
+    void setRegistrationComplete();
+
+    boolean isRegistrationComplete();
 }

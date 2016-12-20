@@ -8,4 +8,6 @@
 
     <dimen name="titlebar_height">56dp</dimen>
     <dimen name="collapsing_toolbar_height">196dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="placeholder_image_size">128dp</dimen>
 </resources>

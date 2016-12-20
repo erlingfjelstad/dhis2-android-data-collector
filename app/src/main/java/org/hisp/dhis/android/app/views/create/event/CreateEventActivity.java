@@ -33,6 +33,7 @@ public class CreateEventActivity extends AppCompatActivity implements CreateEven
     public static final String ARG_EVENT_TYPE = "arg:eventType";
     public static final int EVENT_TYPE_ACTIVE = 1;
     public static final int EVENT_TYPE_SCHEDULED = 2;
+    public static final int CREATE_EVENT_REQUEST_CODE = 1;
 
     @Inject
     CreateEventPresenter createEventPresenter;

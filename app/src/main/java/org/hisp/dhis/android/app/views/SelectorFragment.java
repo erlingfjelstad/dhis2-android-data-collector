@@ -308,19 +308,21 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivityWithNewItem(String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
+    public void navigateToFormWithNewItem(String itemUid, String programUid, String programStageUid, DashboardContextType contextType) {
         logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
-        FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, programStageUid, contextType);
+        //FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, programStageUid, contextType);
+        TeiDashboardActivity.navigateToNewItem(getActivity(), itemUid, programUid);
     }
 
     @Override
-    public void navigateToFormSectionActivityWithExistingItem(String itemUid, String programUid, String programStageUid, FormSectionContextType contextType) {
-        if (FormSectionContextType.REGISTRATION.equals(contextType)) {
-            TeiDashboardActivity.navigateTo(getActivity(), itemUid, programUid);
+    public void navigateToFormWithExistingItem(String enrollmentUid, String programUid, String programStageUid, DashboardContextType contextType) {
+        if (DashboardContextType.REGISTRATION.equals(contextType)) {
+            TeiDashboardActivity.navigateTo(getActivity(), enrollmentUid, programUid);
         } else {
-            FormSectionActivity.navigateToExistingItem(getActivity(), itemUid, programUid, programStageUid, contextType);
+            FormSectionActivity.navigateToExistingItem(getActivity(), enrollmentUid, programUid, programStageUid, contextType);
         }
     }
+    
 
     @Override
     public String getPickerLabel(@PickerLabelId String pickerLabelId) {

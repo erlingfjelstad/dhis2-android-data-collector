@@ -278,7 +278,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                         }
 
                                         List<ProgramStageDataElement> programStageDataElements = new ArrayList<>();
-                                        if(currentProgramStage.programStageDataElements() != null && !currentProgramStage.programStageDataElements().isEmpty()) {
+                                        if (currentProgramStage.programStageDataElements() != null && !currentProgramStage.programStageDataElements().isEmpty()) {
                                             programStageDataElements = new ArrayList<>(currentProgramStage.programStageDataElements());
                                         }
 
@@ -435,13 +435,17 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<List<FormEntityAction>> engine() {
-        return rxRulesEngine.observable()
+
+        return Observable.just((List<FormEntityAction>) new ArrayList<FormEntityAction>());
+
+        //TODO: reintroduce program rules engine
+        /*return rxRulesEngine.observable()
                 .map(new Func1<List<RuleEffect>, List<FormEntityAction>>() {
                     @Override
                     public List<FormEntityAction> call(List<RuleEffect> effects) {
                         return transformRuleEffects(effects);
                     }
-                });
+                });*/
     }
 
     private Subscription subscribeToEngine() {
@@ -462,6 +466,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                 });
     }
 
+    //TODO: Reintroduce rxRulesEngine.notifyDataSetChanged
     private Subscription saveTrackedEntityDataValues() {
         return Observable.create(onValueChangedListener)
                 .debounce(512, TimeUnit.MILLISECONDS)
@@ -480,7 +485,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                             logger.d(TAG, "data value is saved successfully");
 
                             // fire rule engine execution
-                            rxRulesEngine.notifyDataSetChanged();
+                            //rxRulesEngine.notifyDataSetChanged();
                         } else {
                             logger.d(TAG, "Failed to save value");
                         }
@@ -572,7 +577,6 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     private Observable<Boolean> onFormEntityAttributeChanged(FormEntity formEntity) {
         return Observable.just(trackedEntityAttributeValueInteractor.store().save(FormUtils.mapFormEntityToAttributeValue(formEntity, logger, TAG)));
     }
-
 
 
     private TrackedEntityDataValue mapFormEntityToDataValue(FormEntity entity) {

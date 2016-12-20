@@ -2,15 +2,19 @@ package org.hisp.dhis.android.app.views.dashboard.navigation.event;
 
 import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardPresenter;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
+import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
+import org.hisp.dhis.client.sdk.ui.adapters.expandable.ReportEntityChildViewHolder;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
+import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.LocaleUtils;
@@ -32,19 +36,21 @@ import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
 public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String DATE_FORMAT = "yyyy-MM-dd h:mm";
     private final TeiDashboardPresenter teiDashboardPresenter;
     private TeiProgramStageView teiProgramStageView;
     private CompositeSubscription subscription;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
+    private final OrganisationUnitInteractor organisationUnitInteractor;
 
     public TeiProgramStagePresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
                                         ProgramInteractor programInteractor,
-                                        EventInteractor eventInteractor) {
+                                        EventInteractor eventInteractor, OrganisationUnitInteractor organisationUnitInteractor) {
         this.teiDashboardPresenter = teiDashboardPresenter;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
+        this.organisationUnitInteractor = organisationUnitInteractor;
     }
 
     @Override
@@ -53,13 +59,7 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     }
 
     @Override
-    public void onEventClicked(String eventUid) {
-        teiDashboardPresenter.showDataEntryForEvent(eventUid);
-        teiDashboardPresenter.hideMenu();
-    }
-
-    @Override
-    public void navigateTo(String itemUid) {
+    public void showEventForm(final String eventUid) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -67,15 +67,34 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
         subscription = new CompositeSubscription();
 
-        subscription.add(getEvent(itemUid)
+        // TODO: remove this. send eventUid only and let FormSectionPresenter build form from Event/Program
+        subscription.add(getEvent(eventUid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Event>() {
                     @Override
-                    public void call(Event event) {
-                        if (teiProgramStageView != null) {
-                            teiProgramStageView.navigateToFormSection(event.uid(), event.program(), event.programStage());
-                        }
+                    public void call(final Event event) {
+                        subscription.add(getProgram(event.program())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<Program>() {
+                            @Override
+                            public void call(Program program) {
+
+                                Form.Builder formBuilder = new Form.Builder()
+                                        .setDataModelUid(eventUid)
+                                        .setProgramUid(event.program())
+                                        .setProgramStageUid(event.programStage());
+
+                                for (ProgramStage programStage : program.programStages()) {
+                                    if (programStage.uid().equals(event.programStage())) {
+                                        formBuilder.setTitle(programStage.displayName());
+                                        break;
+                                    }
+                                }
+                                teiDashboardPresenter.showForm(formBuilder.build());
+                            }
+                        }));
                     }
                 }));
     }
@@ -132,32 +151,6 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         }
                     }
                 }));
-
-//        subscription.add(Observable.zip(getProgram(programUid), getEventsForEnrollment(enrollmentUid), new Func2<Program, List<Event>, List<ProgramStage>>() {
-//            @Override
-//            public List<ProgramStage> call(Program program, List<Event> events) {
-//                List<ExpansionPanel> expansionPanels = new ArrayList<>();
-//                if(program != null && program.programStages() != null && !program.programStages().isEmpty()) {
-//                    return program.programStages();
-//                }
-//                return null;
-//            }
-//        })
-//                .forEach(new Action1<List<ProgramStage>>() {
-//                    @Override
-//                    public void call(List<ProgramStage> programStages) {
-//
-//                    }
-//                })
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribeOn(Schedulers.io())
-//                .subscribe(new Action1<List<ProgramStage>>() {
-//                    @Override
-//                    public void call(List<ProgramStage> expansionPanelList) {
-//
-//                    }
-//                }));
-
 
     }
 
@@ -233,14 +226,23 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                     default:
                         throw new IllegalArgumentException("Unknown event status");
                 }
-                //Map<String, String> dataElementToValueMap = mapDataElementToValue(event.getDataValues());
+
                 Map<String, String> dataElementToValueMap = new HashMap<>();
                 SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT, LocaleUtils.getLocale());
 
+                OrganisationUnit organisationUnit = organisationUnitInteractor.store().queryByUid(event.organisationUnit());
+                String organisationUnitName;
+                if(organisationUnit != null) {
+                    organisationUnitName = organisationUnit.displayName();
+                } else {
+                    organisationUnitName = "";
+                }
 
                 dataElementToValueMap.put(ReportEntityFilter.DATE_KEY, sdf.format(dateToShow));
                 dataElementToValueMap.put(ReportEntityFilter.STATUS_KEY, event.status().toString());
-                dataElementToValueMap.put("OrgUnit", event.organisationUnit());
+                dataElementToValueMap.put(ReportEntityChildViewHolder.SUB_LABEL, organisationUnitName);
+                dataElementToValueMap.put(ReportEntityChildViewHolder.TEXT_LABEL, sdf.format(dateToShow));
+
                 reportEntities.add(new ReportEntity(event.uid(), syncStatus, dataElementToValueMap));
             }
         }

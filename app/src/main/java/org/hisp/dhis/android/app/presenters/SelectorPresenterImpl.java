@@ -29,7 +29,7 @@
 package org.hisp.dhis.android.app.presenters;
 
 import org.hisp.dhis.android.app.model.SyncWrapper;
-import org.hisp.dhis.android.app.views.FormSectionContextType;
+import org.hisp.dhis.android.app.views.DashboardContextType;
 import org.hisp.dhis.android.app.views.SelectorView;
 import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
@@ -487,7 +487,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Enrollment enrollment) {
                         if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivityWithNewItem(enrollment.uid(), enrollment.program(), null, FormSectionContextType.REGISTRATION);
+                            selectorView.navigateToFormWithNewItem(enrollment.uid(), enrollment.program(), null, DashboardContextType.REGISTRATION);
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -548,7 +548,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             @Override
                             public void call(Event event) {
                                 if (selectorView != null) {
-                                    selectorView.navigateToFormSectionActivityWithNewItem(event.uid(), event.program(), event.programStage(), FormSectionContextType.REPORT);
+                                    selectorView.navigateToFormWithNewItem(event.uid(), event.program(), event.programStage(), DashboardContextType.EXISTING_ITEM);
                                 }
                             }
                         }, new Action1<Throwable>() {
@@ -589,13 +589,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             ProgramType programType = program.programType();
                             switch (programType) {
                                 case WITH_REGISTRATION: {
-                                    selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), program.uid(), null, FormSectionContextType.REGISTRATION);
+                                    selectorView.navigateToFormWithExistingItem(reportEntity.getId(), program.uid(), null, DashboardContextType.EXISTING_ITEM);
                                     break;
                                 }
                                 case WITHOUT_REGISTRATION: {
                                     if (program.programStages() != null && !program.programStages().isEmpty()) {
                                         ProgramStage programStage = program.programStages().get(0); //Only one stage in program without registration
-                                        selectorView.navigateToFormSectionActivityWithExistingItem(reportEntity.getId(), program.uid(), programStage.uid(), FormSectionContextType.REPORT);
+                                        selectorView.navigateToFormWithExistingItem(reportEntity.getId(), program.uid(), programStage.uid(), DashboardContextType.EXISTING_ITEM);
                                     }
                                     break;
                                 }
