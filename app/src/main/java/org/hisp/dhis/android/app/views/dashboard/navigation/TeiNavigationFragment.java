@@ -161,10 +161,9 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 switch (viewPager.getCurrentItem()) {
                     case TAB_PROGRAM_STAGES: {
                         //startActivityForResult();
-                        CreateEventActivity.navigateTo(getActivity(),
+                        CreateEventActivity.navigateTo(TeiNavigationFragment.this,
                                 getProgramUid(),
-                                getItemUid(),
-                                "");
+                                getItemUid());
                         break;
                     }
                     case TAB_PROFILE: {

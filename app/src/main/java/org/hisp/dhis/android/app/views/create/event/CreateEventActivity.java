@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -50,7 +51,7 @@ public class CreateEventActivity extends AppCompatActivity implements CreateEven
         intent.putExtra(ARG_CONTENT_ID, programUid);
         intent.putExtra(ARG_IDENTIFIABLE_ID, enrollmentUid);
         intent.putExtra(ARG_CONTENT_TITLE, contentTitle);
-        activity.startActivity(intent);
+        activity.startActivityForResult(intent, CREATE_EVENT_REQUEST_CODE);
     }
 
     @Override
@@ -193,4 +194,10 @@ public class CreateEventActivity extends AppCompatActivity implements CreateEven
         return programStageView.getSelection() == null;
     }
 
+    public static void navigateTo(Fragment fragment, String programUid, String itemUid) {
+        Intent intent = new Intent(fragment.getContext(), CreateEventActivity.class);
+        intent.putExtra(ARG_CONTENT_ID, programUid);
+        intent.putExtra(ARG_IDENTIFIABLE_ID, itemUid);
+        fragment.startActivityForResult(intent, CREATE_EVENT_REQUEST_CODE);
+    }
 }
