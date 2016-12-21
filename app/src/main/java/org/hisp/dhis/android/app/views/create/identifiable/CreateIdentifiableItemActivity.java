@@ -11,8 +11,7 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.DashboardContextType;
-import org.hisp.dhis.android.app.views.FormSectionActivity;
+import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityFilter;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowView;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowViewHolder;
@@ -152,7 +151,7 @@ public class CreateIdentifiableItemActivity extends AppCompatActivity implements
 
     @Override
     public void itemCreated(String itemUid, String programUid) {
-        FormSectionActivity.navigateToNewItem(this, itemUid, programUid, null, DashboardContextType.REGISTRATION);
+        TeiDashboardActivity.navigateToNewItem(this, itemUid, programUid);
         finish();
     }
 
@@ -183,23 +182,6 @@ public class CreateIdentifiableItemActivity extends AppCompatActivity implements
                 createIdentifiableItemPresenter.createItem(orgUnitUid, programUid, getContentId());
             }
         }
-//        else if (v.getId() == R.id.schedule_button) {
-//            DatePickerDialogFragment datePicker = DatePickerDialogFragment.newInstance(true);
-//            datePicker.setOnDateSetListener(new DatePickerDialog.OnDateSetListener() {
-//                @Override
-//                public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-//                    Date scheduledDate = new Date(year, month, dayOfMonth);
-//                    createIdentifiableItemPresenter.storeScheduledEvent(scheduledDate, orgUnitUid, programUid, getContentId(), getIdentifiableId());
-//
-//                    data.putInt(ARG_EVENT_TYPE, EVENT_TYPE_SCHEDULED);
-//                    resultOkIntent.putExtras(data);
-//
-//                    setResult(RESULT_OK, resultOkIntent);
-//                    finish();
-//                }
-//            });
-//            datePicker.show(getSupportFragmentManager());
-//        }
     }
 
     private boolean formIsValid() {
