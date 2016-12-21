@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
+    android:weightSum="1"
     tools:context=".views.create.event.CreateEventActivity">
 
 
@@ -29,7 +30,8 @@
     <ScrollView
         android:id="@+id/scrollview_create_event"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -62,39 +64,26 @@
         </LinearLayout>
     </ScrollView>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_create_event"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/keyline_default"
-        android:src="@drawable/ic_add"
-        app:elevation="8dp"
-        app:layout_anchor="@id/scrollview_create_event"
-        app:layout_anchorGravity="bottom|right|end"
-        app:pressedTranslationZ="8dp" />
-
     <android.support.v7.widget.ButtonBarLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:paddingRight="8dp"
-        android:visibility="gone">
+        android:paddingEnd="8dp"
+        android:paddingRight="8dp">
 
         <Button
             android:id="@+id/schedule_button"
             style="@style/AppTheme.Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SCHEDULE FOR LATER"
-            android:visibility="gone" />
+            android:text="SCHEDULE FOR LATER" />
 
         <Button
             android:id="@+id/next_button"
             style="@style/AppTheme.Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ENTER DATA NOW"
-            android:visibility="gone" />
+            android:text="ENTER DATA NOW" />
     </android.support.v7.widget.ButtonBarLayout>
 
 </LinearLayout>
