@@ -21,17 +21,14 @@
         <activity
             android:name=".views.HomeActivity"
             android:theme="@style/AppTheme.Main" />
-
-        <activity android:name=".views.FormSectionActivity" />
+        <activity android:name=".views.FormActivity" />
         <activity android:name=".views.LoginActivity" />
         <activity android:name=".views.create.identifiable.CreateIdentifiableItemActivity" />
         <activity android:name=".views.selectedcontent.SelectedContentActivity" />
-
         <activity android:name=".views.enrollment.EnrollmentActivity" />
         <activity android:name=".views.create.event.CreateEventActivity" />
-
         <activity
-            android:name=".views.dashboard.trackedentityinstance.TeiDashboardActivity"
+            android:name=".views.drawerform.trackedentityinstance.TeiDashboardActivity"
             android:label="@string/title_activity_tei_dashboard" />
 
         <meta-data
@@ -55,6 +52,7 @@
             android:name="org.hisp.dhis.client.sdk.core.commons.database.DbContentProvider"
             android:authorities="org.hisp.dhis.client.sdk.core" />
 
+        <activity android:name=".views.drawerform.singleevent.SingleEventDashboardActivity"></activity>
     </application>
 
 </manifest>

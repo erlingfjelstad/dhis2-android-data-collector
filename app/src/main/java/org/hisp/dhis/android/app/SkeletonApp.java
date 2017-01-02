@@ -8,6 +8,10 @@ import com.crashlytics.android.core.CrashlyticsCore;
 
 import org.hisp.dhis.android.app.views.HomeActivity;
 import org.hisp.dhis.android.app.views.LoginActivity;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardComponent;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardModule;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardComponent;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardModule;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentComponent;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentModule;
 import org.hisp.dhis.client.sdk.ui.bindings.App;
@@ -22,8 +26,9 @@ import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 public class SkeletonApp extends App {
     private AppComponent appComponent;
     private UserComponent userComponent;
-    private FormComponent formComponent;
+    private TeiDashboardComponent teiDashboardComponent;
     private EnrollmentComponent enrollmentComponent;
+    private SingleEventDashboardComponent singleEventDashboardComponent;
     //private ActivityComponent activityComponent;
 
     @Override
@@ -69,19 +74,19 @@ public class SkeletonApp extends App {
         return (userComponent = appComponent.plus(new UserModule(this, serverUrl)));
     }
 
-    public FormComponent createFormComponent() {
+    public TeiDashboardComponent createTeiDashboardComponent() {
         isNull(userComponent, "UserComponent must not be null");
 
-        formComponent = userComponent.plus(new FormModule());
-        return formComponent;
+        teiDashboardComponent = userComponent.plus(new TeiDashboardModule());
+        return teiDashboardComponent;
     }
 
-    public FormComponent getFormComponent() {
-        return formComponent;
+    public TeiDashboardComponent getTeiDashboardComponent() {
+        return teiDashboardComponent;
     }
 
-    public void releaseFormComponent() {
-        formComponent = null;
+    public void releaseTeiDashboardComponent() {
+        teiDashboardComponent = null;
     }
 
     public EnrollmentComponent createEnrollmentComponent() {
@@ -95,5 +100,18 @@ public class SkeletonApp extends App {
 
     public void releaseEnrollmentComponent() {
         enrollmentComponent = null;
+    }
+
+    public SingleEventDashboardComponent createSingleEventDashboardComponent() {
+        singleEventDashboardComponent = userComponent.plus(new SingleEventDashboardModule());
+        return singleEventDashboardComponent;
+    }
+
+    public SingleEventDashboardComponent getSingleEventDashboardComponent() {
+        return singleEventDashboardComponent;
+    }
+
+    public void releaseSingleEventDashboardComponent() {
+        singleEventDashboardComponent = null;
     }
 }

@@ -33,6 +33,10 @@ import org.hisp.dhis.android.app.views.SelectorFragment;
 import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
 import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
 import org.hisp.dhis.android.app.views.dashboard.DashboardFragment;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardComponent;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardModule;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardComponent;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardModule;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentComponent;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentModule;
 import org.hisp.dhis.android.app.views.selectedcontent.SelectedContentFragment;
@@ -51,7 +55,9 @@ public interface UserComponent extends org.hisp.dhis.client.sdk.ui.bindings.comm
     // Sub-modules
     //------------------------------------------------------------------------
 
-    FormComponent plus(FormModule formModule);
+    TeiDashboardComponent plus(TeiDashboardModule teiDashboardModule);
+
+    SingleEventDashboardComponent plus(SingleEventDashboardModule singleEventDashboardModule);
 
     EnrollmentComponent plus(EnrollmentModule enrollmentModule);
 

@@ -61,7 +61,8 @@ import android.widget.Toast;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.presenters.SelectorPresenter;
-import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardActivity;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter.OnPickerListChangeListener;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
@@ -310,19 +311,31 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     @Override
     public void navigateToFormWithNewItem(String itemUid, String programUid, String programStageUid, DashboardContextType contextType) {
         logger.d(TAG, String.format("Item with uid=%s is created", itemUid));
-        //FormSectionActivity.navigateToNewItem(getActivity(), itemUid, programUid, programStageUid, contextType);
-        TeiDashboardActivity.navigateToNewItem(getActivity(), itemUid, programUid);
+        //FormActivity.navigateToNewItem(getActivity(), itemUid, programUid, programStageUid, contextType);
+        switch (contextType) {
+            case ANONYMOUS_EVENT:
+                SingleEventDashboardActivity.navigateToItem(getActivity(), itemUid, programUid, programStageUid);
+                break;
+            case REGISTRATION:
+                TeiDashboardActivity.navigateToNewItem(getActivity(), itemUid, programUid);
+                break;
+        }
+
     }
 
     @Override
-    public void navigateToFormWithExistingItem(String enrollmentUid, String programUid, String programStageUid, DashboardContextType contextType) {
-        if (DashboardContextType.REGISTRATION.equals(contextType)) {
-            TeiDashboardActivity.navigateTo(getActivity(), enrollmentUid, programUid);
-        } else {
-            FormSectionActivity.navigateToExistingItem(getActivity(), enrollmentUid, programUid, programStageUid, contextType);
+    public void navigateToFormWithExistingItem(String itemUid, String programUid, String programStageUid, DashboardContextType contextType) {
+
+        switch (contextType) {
+            case ANONYMOUS_EVENT:
+                SingleEventDashboardActivity.navigateToItem(getActivity(), itemUid, programUid, programStageUid);
+                break;
+            case REGISTRATION:
+                TeiDashboardActivity.navigateTo(getActivity(), itemUid, programUid);
+                break;
         }
     }
-    
+
 
     @Override
     public String getPickerLabel(@PickerLabelId String pickerLabelId) {

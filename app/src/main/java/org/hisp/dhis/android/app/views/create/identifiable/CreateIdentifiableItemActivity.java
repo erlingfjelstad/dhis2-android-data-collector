@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.dashboard.trackedentityinstance.TeiDashboardActivity;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityFilter;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowView;
 import org.hisp.dhis.client.sdk.ui.rows.filterablerowview.FilterableRowViewHolder;

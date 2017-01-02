@@ -85,7 +85,6 @@ dependencies {
     compile project(":core-rules")
     compile project(":ui-bindings")
 
-
     // Dependencies for testing
     testCompile "junit:junit:${libs.jUnitVersion}"
 
@@ -113,4 +112,5 @@ dependencies {
     compile "com.android.support:multidex:${libs.multidex}"
     compile project(path: ':ui')
     compile project(path: ':core')
+    compile 'com.android.support:support-v4:24.2.1'
 }

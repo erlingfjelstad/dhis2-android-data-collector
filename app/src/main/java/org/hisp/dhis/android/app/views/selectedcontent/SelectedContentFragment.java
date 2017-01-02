@@ -23,9 +23,10 @@ import android.widget.Toast;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.views.DashboardContextType;
-import org.hisp.dhis.android.app.views.FormSectionActivity;
 import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
 import org.hisp.dhis.android.app.views.create.identifiable.CreateIdentifiableItemActivity;
+import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardActivity;
+import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardActivity;
 import org.hisp.dhis.android.app.views.enrollment.EnrollmentActivity;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
 import org.hisp.dhis.client.sdk.ui.models.ContentEntity;
@@ -152,7 +153,7 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
                 break;
             }
             case ContentEntity.TYPE_PROGRAM: {
-                FormSectionActivity.navigateToExistingItem(getActivity(), reportEntity.getId(), getContentId(), null, DashboardContextType.REGISTRATION);
+                SingleEventDashboardActivity.navigateToItem(getActivity(), reportEntity.getId(), getContentId(), reportEntity.getProgramStageUid());
                 break;
             }
         }
@@ -346,8 +347,20 @@ public class SelectedContentFragment extends Fragment implements SelectedContent
     }
 
     @Override
-    public void navigateToFormSectionActivity(String contentId, String contentTitle, String uid, DashboardContextType contextType) {
-        FormSectionActivity.navigateToNewItem(getActivity(), contentId, contentTitle, uid, contextType);
+    public void navigateToForm(String eventUid, String programUid, String programStageUid, DashboardContextType contextType) {
+
+        switch (contextType) {
+            case ANONYMOUS_EVENT:
+                SingleEventDashboardActivity.navigateToItem(getActivity(), eventUid, programUid, programStageUid);
+                break;
+            case EXISTING_ITEM:
+                TeiDashboardActivity.navigateTo(getActivity(), eventUid, programUid);
+                break;
+            default:
+            case REGISTRATION:
+                TeiDashboardActivity.navigateToNewItem(getActivity(), eventUid, programUid);
+                break;
+        }
     }
 
     private void showErrorDialog(String title, String message) {

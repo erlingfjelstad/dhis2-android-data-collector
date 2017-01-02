@@ -172,6 +172,7 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
                                     eventBuilder.trackedEntityDataValues(trackedEntityDataValueInteractor.store().query(event.uid()));
                                     event = eventBuilder.build();
                                     reportEntities.add(new ReportEntity(event.uid(),
+                                            event.programStage(),
                                             ReportEntity.Status.valueOf(event.state().toString()),
                                             toEventDataValueMap(event.trackedEntityDataValues())));
                                 }
@@ -339,7 +340,7 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
                             }
                         } else {
                             if (selectedContentView != null) {
-                                // Only one org unit exist - create event and navigate to FormSectionActivity
+                                // Only one org unit exist - create event and navigate to FormActivity
                                 if (organisationUnits != null && !organisationUnits.isEmpty()) {
                                     switch (contentType) {
                                         case ContentEntity.TYPE_PROGRAM: {
@@ -352,9 +353,9 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
 
                                                 eventInteractor.store().save(event);
 
-                                                selectedContentView.navigateToFormSectionActivity(
+                                                selectedContentView.navigateToForm(
                                                         event.uid(), program.uid(),
-                                                        programStage.uid(), DashboardContextType.EXISTING_ITEM);
+                                                        programStage.uid(), DashboardContextType.ANONYMOUS_EVENT);
                                                 break;
                                             }
                                         }
@@ -371,7 +372,7 @@ public class SelectedContentPresenterImpl implements SelectedContentPresenter {
                                                 selectedContentView.navigateTo(contentId, contentTitle);
                                             }
                                             // Only one orgUnit and one program exists.
-                                            // Create enrollment and move to FormSectionActivity
+                                            // Create enrollment and move to FormActivity
                                             else {
                                                 OrganisationUnit organisationUnit = organisationUnits.get(0);
 
