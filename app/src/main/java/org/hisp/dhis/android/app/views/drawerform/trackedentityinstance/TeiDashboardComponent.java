@@ -1,9 +1,7 @@
 package org.hisp.dhis.android.app.views.drawerform.trackedentityinstance;
 
 import org.hisp.dhis.android.app.PerActivity;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockController;
-import org.hisp.dhis.android.app.views.drawerform.form.FormFragment;
-import org.hisp.dhis.android.app.views.drawerform.form.dataentry.DataEntryFragment;
+import org.hisp.dhis.android.app.views.drawerform.form.FormComponent;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.TeiNavigationFragment;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.profile.TeiProfileFragment;
@@ -17,7 +15,7 @@ import dagger.Subcomponent;
                 TeiDashboardModule.class
         }
 )
-public interface TeiDashboardComponent {
+public interface TeiDashboardComponent extends FormComponent {
 
     //------------------------------------------------------------------------
     // Injection targets
@@ -32,11 +30,5 @@ public interface TeiDashboardComponent {
     void inject(TeiWidgetFragment teiWidgetFragment);
 
     void inject(TeiNavigationFragment teiNavigationFragment);
-
-    void inject(FormFragment formFragment);
-
-    void inject(NavigationLockController navigationLockController);
-
-    void inject(DataEntryFragment dataEntryFragment);
 
 }

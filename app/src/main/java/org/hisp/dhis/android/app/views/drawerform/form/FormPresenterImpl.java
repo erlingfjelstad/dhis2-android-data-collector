@@ -4,6 +4,8 @@ import android.location.Location;
 
 import org.hisp.dhis.android.app.LocationProvider;
 import org.hisp.dhis.android.app.model.RxRulesEngine;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.OnEventClickedEvent;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
@@ -55,6 +57,7 @@ public class FormPresenterImpl implements FormPresenter {
     private final RxRulesEngine rxRuleEngine;
 
     private final Logger logger;
+    private final DrawerFormBus eventBus;
 
     private FormView formView;
     private CompositeSubscription subscription;
@@ -66,7 +69,9 @@ public class FormPresenterImpl implements FormPresenter {
                              EventInteractor eventInteractor,
                              EnrollmentInteractor enrollmentInteractor,
                              RxRulesEngine rxRuleEngine,
-                             LocationProvider locationProvider, Logger logger) {
+                             LocationProvider locationProvider,
+                             Logger logger,
+                             DrawerFormBus eventBus) {
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.enrollmentInteractor = enrollmentInteractor;
@@ -74,6 +79,7 @@ public class FormPresenterImpl implements FormPresenter {
         this.locationProvider = locationProvider;
         this.logger = logger;
         this.simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -83,6 +89,54 @@ public class FormPresenterImpl implements FormPresenter {
         if (gettingLocation) {
             formView.setLocationButtonState(false);
         }
+
+        eventBus.observable(OnEventClickedEvent.class).subscribeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<OnEventClickedEvent>() {
+            @Override
+            public void call(final OnEventClickedEvent onEventClickedEvent) {
+                buildFormFromEventUid(onEventClickedEvent);
+            }
+        });
+
+
+    }
+
+    private void buildFormFromEventUid(final OnEventClickedEvent onEventClickedEvent) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+            subscription = null;
+        }
+
+        subscription = new CompositeSubscription();
+
+        subscription.add(getEvent(onEventClickedEvent.getEventUid())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Event>() {
+                    @Override
+                    public void call(final Event event) {
+                        subscription.add(getProgram(event.program())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<Program>() {
+                                    @Override
+                                    public void call(Program program) {
+
+                                        Form.Builder formBuilder = new Form.Builder()
+                                                .setDataModelUid(onEventClickedEvent.getEventUid())
+                                                .setProgramUid(event.program())
+                                                .setProgramStageUid(event.programStage());
+
+                                        for (ProgramStage programStage : program.programStages()) {
+                                            if (programStage.uid().equals(event.programStage())) {
+                                                formBuilder.setTitle(programStage.displayName());
+                                                break;
+                                            }
+                                        }
+                                        buildForm(formBuilder.build());
+                                    }
+                                }));
+                    }
+                }));
     }
 
     @Override
@@ -93,6 +147,8 @@ public class FormPresenterImpl implements FormPresenter {
             subscription.unsubscribe();
             subscription = null;
         }
+
+        eventBus.observable(OnEventClickedEvent.class).unsubscribeOn(AndroidSchedulers.mainThread());
     }
 
     @Override

@@ -43,23 +43,7 @@ public class SingleEventDashboardActivity extends AppCompatActivity implements S
         // if using two-pane layout (tablets in landscape mode), drawerLayout will be null
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        SingleEventDashboardComponent component = ((SkeletonApp) getApplication()).getSingleEventDashboardComponent();
-
-        // first time activity is created
-        if (savedInstanceState == null) {
-
-            // it means we found old component and we have to release it
-            if (component != null) {
-                ((SkeletonApp) getApplication()).releaseSingleEventDashboardComponent();
-            }
-
-            // create new instance of component
-            component = ((SkeletonApp) getApplication()).createSingleEventDashboardComponent();
-        }
-
-        component.inject(this);
-
-        singleEventDashboardPresenter.attachView(this);
+        injectDependencies(savedInstanceState);
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -77,22 +61,29 @@ public class SingleEventDashboardActivity extends AppCompatActivity implements S
                 .commit();
     }
 
+    private void injectDependencies(Bundle savedInstanceState) {
+        SingleEventDashboardComponent component = ((SkeletonApp) getApplication()).getSingleEventDashboardComponent();
+
+        // first time activity is created
+        if (savedInstanceState == null) {
+            // it means we found old component and we have to release it
+            if (component != null) {
+                ((SkeletonApp) getApplication()).releaseSingleEventDashboardComponent();
+            }
+        }
+
+        if (component == null) {
+            // create new instance of component
+            component = ((SkeletonApp) getApplication()).createSingleEventDashboardComponent();
+        }
+
+        component.inject(this);
+
+        singleEventDashboardPresenter.attachView(this);
+    }
+
     private boolean useTwoPaneLayout() {
         return drawerLayout == null;
-    }
-
-    @Override
-    public void closeDrawer() {
-        if (drawerLayout != null) {
-            drawerLayout.closeDrawers();
-        }
-    }
-
-    @Override
-    public void openDrawer() {
-        if (drawerLayout != null) {
-            drawerLayout.openDrawer(GravityCompat.END);
-        }
     }
 
     @Override
@@ -102,4 +93,16 @@ public class SingleEventDashboardActivity extends AppCompatActivity implements S
         ((SkeletonApp) getApplication()).releaseSingleEventDashboardComponent();
     }
 
+    @Override
+    public void toggleDrawerState() {
+        if (drawerLayout == null) {
+            return;
+        }
+
+        if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
+            drawerLayout.closeDrawers();
+        } else {
+            drawerLayout.openDrawer(GravityCompat.END);
+        }
+    }
 }

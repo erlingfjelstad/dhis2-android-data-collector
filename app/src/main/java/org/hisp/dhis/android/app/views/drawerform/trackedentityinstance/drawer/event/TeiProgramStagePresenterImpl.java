@@ -1,6 +1,7 @@
 package org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.event;
 
-import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardPresenter;
+import android.util.Log;
+
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
@@ -14,7 +15,6 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.ReportEntityChildViewHolder;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.ExpansionPanel;
-import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.LocaleUtils;
@@ -37,17 +37,17 @@ import rx.subscriptions.CompositeSubscription;
 
 public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     private static final String DATE_FORMAT = "yyyy-MM-dd h:mm";
-    private final TeiDashboardPresenter teiDashboardPresenter;
+
     private TeiProgramStageView teiProgramStageView;
+
     private CompositeSubscription subscription;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final OrganisationUnitInteractor organisationUnitInteractor;
 
-    public TeiProgramStagePresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
-                                        ProgramInteractor programInteractor,
-                                        EventInteractor eventInteractor, OrganisationUnitInteractor organisationUnitInteractor) {
-        this.teiDashboardPresenter = teiDashboardPresenter;
+    public TeiProgramStagePresenterImpl(ProgramInteractor programInteractor,
+                                        EventInteractor eventInteractor,
+                                        OrganisationUnitInteractor organisationUnitInteractor) {
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.organisationUnitInteractor = organisationUnitInteractor;
@@ -56,47 +56,6 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
     @Override
     public void drawProgramStages(String enrollmentUid, String programUid) {
         this.generateDummyProgramStages(enrollmentUid, programUid);
-    }
-
-    @Override
-    public void showEventForm(final String eventUid) {
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-            subscription = null;
-        }
-
-        subscription = new CompositeSubscription();
-
-        // TODO: remove this. send eventUid only and let FormPresenter build form from Event/Program
-        subscription.add(getEvent(eventUid)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Event>() {
-                    @Override
-                    public void call(final Event event) {
-                        subscription.add(getProgram(event.program())
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<Program>() {
-                            @Override
-                            public void call(Program program) {
-
-                                Form.Builder formBuilder = new Form.Builder()
-                                        .setDataModelUid(eventUid)
-                                        .setProgramUid(event.program())
-                                        .setProgramStageUid(event.programStage());
-
-                                for (ProgramStage programStage : program.programStages()) {
-                                    if (programStage.uid().equals(event.programStage())) {
-                                        formBuilder.setTitle(programStage.displayName());
-                                        break;
-                                    }
-                                }
-                                teiDashboardPresenter.showForm(formBuilder.build());
-                            }
-                        }));
-                    }
-                }));
     }
 
     @Override
@@ -149,6 +108,11 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
                         if (teiProgramStageView != null) {
                             teiProgramStageView.drawProgramStages(expansionPanelList);
                         }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.e("TeiProgramStage", "TeiProgramStagePresenter error: Unable to transform ProgramStages and Events to view models", throwable);
                     }
                 }));
 
@@ -232,7 +196,7 @@ public class TeiProgramStagePresenterImpl implements TeiProgramStagePresenter {
 
                 OrganisationUnit organisationUnit = organisationUnitInteractor.store().queryByUid(event.organisationUnit());
                 String organisationUnitName;
-                if(organisationUnit != null) {
+                if (organisationUnit != null) {
                     organisationUnitName = organisationUnit.displayName();
                 } else {
                     organisationUnitName = "";

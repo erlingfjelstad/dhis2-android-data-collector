@@ -5,10 +5,8 @@ import android.support.annotation.Nullable;
 import org.hisp.dhis.android.app.LocationProvider;
 import org.hisp.dhis.android.app.PerActivity;
 import org.hisp.dhis.android.app.model.RxRulesEngine;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockController;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockControllerImpl;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerController;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerControllerImpl;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBusImpl;
 import org.hisp.dhis.android.app.views.drawerform.form.FormPresenter;
 import org.hisp.dhis.android.app.views.drawerform.form.FormPresenterImpl;
 import org.hisp.dhis.android.app.views.drawerform.form.dataentry.DataEntryPresenter;
@@ -44,16 +42,8 @@ public class TeiDashboardModule {
 
     @Provides
     @PerActivity
-    public RightDrawerController providesRightDrawerController(
-            @Nullable TeiDashboardPresenter teiDashboardPresenter) {
-        return new RightDrawerControllerImpl(teiDashboardPresenter);
-    }
-
-    @Provides
-    @PerActivity
-    public NavigationLockController providesNavigationLockController(
-            @Nullable TeiDashboardPresenter teiDashboardPresenter) {
-        return new NavigationLockControllerImpl(teiDashboardPresenter);
+    public DrawerFormBus providesDrawerFormBus() {
+        return new DrawerFormBusImpl();
     }
 
     @Provides
@@ -68,13 +58,12 @@ public class TeiDashboardModule {
                 programInteractor,
                 eventInteractor, enrollmentInteractor, logger);
     }
-
-    //TODO: Change naming
+    
     @Provides
     @PerActivity
     public TeiDashboardPresenter providesTeiDashboardPresenter(
-            @Nullable FormPresenter formPresenter) {
-        return new TeiDashboardPresenterImpl(formPresenter);
+            @Nullable DrawerFormBus eventBus) {
+        return new TeiDashboardPresenterImpl(eventBus);
     }
 
     @Provides
@@ -91,32 +80,30 @@ public class TeiDashboardModule {
 
     @Provides
     @PerActivity
-    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable TeiDashboardPresenter teiDashboardPresenter,
-                                                                 @Nullable TeiProfilePresenter teiProfilePresenter,
-                                                                 @Nullable EnrollmentInteractor enrollmentInteractor,
+    public TeiNavigationPresenter providesTeiNavigationPresenter(@Nullable EnrollmentInteractor enrollmentInteractor,
                                                                  @Nullable EventInteractor eventInteractor,
                                                                  @Nullable TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
                                                                  @Nullable TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
                                                                  @Nullable ProgramInteractor programInteractor,
-                                                                 @Nullable Logger logger) {
-        return new TeiNavigationPresenterImpl(teiDashboardPresenter,
-                teiProfilePresenter,
+                                                                 @Nullable Logger logger,
+                                                                 @Nullable DrawerFormBus eventBus) {
+        return new TeiNavigationPresenterImpl(
                 enrollmentInteractor,
                 eventInteractor,
                 trackedEntityInstanceInteractor,
                 trackedEntityAttributeValueInteractor,
                 programInteractor,
-                logger);
+                logger,
+                eventBus);
     }
 
     @Provides
     @PerActivity
     public TeiProgramStagePresenter providesTeiProgramStagePresenter(
-            @Nullable TeiDashboardPresenter teiDashboardPresenter,
             @Nullable ProgramInteractor programInteractor,
             @Nullable EventInteractor eventInteractor,
             @Nullable OrganisationUnitInteractor organisationUnitInteractor) {
-        return new TeiProgramStagePresenterImpl(teiDashboardPresenter, programInteractor, eventInteractor, organisationUnitInteractor);
+        return new TeiProgramStagePresenterImpl(programInteractor, eventInteractor, organisationUnitInteractor);
     }
 
 
@@ -132,9 +119,10 @@ public class TeiDashboardModule {
             @Nullable ProgramInteractor programInteractor,
             @Nullable EventInteractor eventInteractor,
             @Nullable EnrollmentInteractor enrollmentInteractor,
-            RxRulesEngine rxRulesEngine, LocationProvider locationProvider, Logger logger) {
+            RxRulesEngine rxRulesEngine, LocationProvider locationProvider, Logger logger,
+            DrawerFormBus eventBus) {
         return new FormPresenterImpl(programInteractor, eventInteractor,
-                enrollmentInteractor, rxRulesEngine, locationProvider, logger);
+                enrollmentInteractor, rxRulesEngine, locationProvider, logger, eventBus);
     }
 
     @Provides

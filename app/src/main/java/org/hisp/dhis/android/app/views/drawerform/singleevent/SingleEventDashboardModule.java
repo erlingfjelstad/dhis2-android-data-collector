@@ -5,10 +5,8 @@ import android.support.annotation.Nullable;
 import org.hisp.dhis.android.app.LocationProvider;
 import org.hisp.dhis.android.app.PerActivity;
 import org.hisp.dhis.android.app.model.RxRulesEngine;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockController;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockControllerImpl;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerController;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerControllerImpl;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBusImpl;
 import org.hisp.dhis.android.app.views.drawerform.form.FormPresenter;
 import org.hisp.dhis.android.app.views.drawerform.form.FormPresenterImpl;
 import org.hisp.dhis.android.app.views.drawerform.form.dataentry.DataEntryPresenter;
@@ -37,15 +35,8 @@ public class SingleEventDashboardModule {
 
     @Provides
     @PerActivity
-    public RightDrawerController providesRightDrawerController(
-            @Nullable SingleEventDashboardPresenter singleEventDashboardPresenter) {
-        return new RightDrawerControllerImpl(singleEventDashboardPresenter);
-    }
-
-    @Provides
-    @PerActivity
-    public NavigationLockController providesNavigationLockController() {
-        return new NavigationLockControllerImpl(null);
+    public DrawerFormBus providesDrawerFormBus() {
+        return new DrawerFormBusImpl();
     }
 
     @Provides
@@ -67,9 +58,10 @@ public class SingleEventDashboardModule {
             @Nullable ProgramInteractor programInteractor,
             @Nullable EventInteractor eventInteractor,
             @Nullable EnrollmentInteractor enrollmentInteractor,
-            RxRulesEngine rxRulesEngine, LocationProvider locationProvider, Logger logger) {
+            RxRulesEngine rxRulesEngine, LocationProvider locationProvider, Logger logger,
+            DrawerFormBus eventBus) {
         return new FormPresenterImpl(programInteractor, eventInteractor,
-                enrollmentInteractor, rxRulesEngine, locationProvider, logger);
+                enrollmentInteractor, rxRulesEngine, locationProvider, logger, eventBus);
     }
 
     @Provides
@@ -92,8 +84,8 @@ public class SingleEventDashboardModule {
 
     @Provides
     @PerActivity
-    public SingleEventDashboardPresenter providesSingleEventDashboardPresenter() {
-        return new SingleEventDashboardPresenterImpl();
+    public SingleEventDashboardPresenter providesSingleEventDashboardPresenter(@Nullable DrawerFormBus eventBus) {
+        return new SingleEventDashboardPresenterImpl(eventBus);
     }
 
     @Provides

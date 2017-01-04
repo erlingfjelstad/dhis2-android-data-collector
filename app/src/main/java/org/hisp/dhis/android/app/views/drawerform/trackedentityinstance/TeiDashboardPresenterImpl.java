@@ -1,58 +1,42 @@
 package org.hisp.dhis.android.app.views.drawerform.trackedentityinstance;
 
-import org.hisp.dhis.android.app.views.drawerform.form.FormPresenter;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
-import org.hisp.dhis.client.sdk.ui.models.Form;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class TeiDashboardPresenterImpl implements TeiDashboardPresenter {
 
-    private final String TAG = this.getClass().getSimpleName();
+    private final DrawerFormBus eventBus;
 
     TeiDashboardView teiDashboardView;
 
-    FormPresenter formPresenter;
-
-    public TeiDashboardPresenterImpl(FormPresenter formPresenter) {
-        this.formPresenter = formPresenter;
-    }
-
-    @Override
-    public void hideMenu() {
-        if (teiDashboardView != null) {
-            teiDashboardView.closeDrawer();
-        }
-    }
-
-    @Override
-    public void showMenu() {
-        if (teiDashboardView != null) {
-            teiDashboardView.openDrawer();
-        }
-    }
-
-    @Override
-    public void showForm(Form form) {
-        hideMenu();
-        formPresenter.buildForm(form);
-    }
-
-    @Override
-    public void lockNavigation() {
-
-    }
-
-    @Override
-    public void unlockNavigation() {
-        teiDashboardView.setRegistrationComplete();
+    public TeiDashboardPresenterImpl(DrawerFormBus eventBus) {
+        this.eventBus = eventBus;
     }
 
     @Override
     public void attachView(View view) {
         teiDashboardView = (TeiDashboardView) view;
+
+        // Subscribe to toggle drawer events
+        eventBus.observable(ToggleDrawerEvent.class)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<ToggleDrawerEvent>() {
+                    @Override
+                    public void call(ToggleDrawerEvent event) {
+                        teiDashboardView.toggleDrawerState();
+                    }
+                });
     }
 
     @Override
     public void detachView() {
         teiDashboardView = null;
+
+        // Unsubscribe if we have no view to handle event changes
+        eventBus.observable(ToggleDrawerEvent.class).unsubscribeOn(AndroidSchedulers.mainThread());
     }
 }

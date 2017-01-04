@@ -100,29 +100,20 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
         return getArguments().getString(ARG_PROGRAM_STAGE_SECTION_ID, null);
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        try {
-            ((SkeletonApp) getActivity().getApplication())
-                    .getTeiDashboardComponent().inject(this);
-
-        } catch (Exception e) {
-            ((SkeletonApp) getActivity().getApplication())
-                    .getSingleEventDashboardComponent().inject(this);
-        }
-        // attach view is called in this case from onCreate(),
-        // in order to prevent unnecessary work which should be done
-        // if case it will be i onResume()
-        dataEntryPresenter.attachView(this);
-
-    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
+        ((SkeletonApp) getActivity().getApplication())
+                .getFormComponent().inject(this);
+
+        // attach view is called in this case from onCreate(),
+        // in order to prevent unnecessary work which should be done
+        // if case it will be i onResume()
+        dataEntryPresenter.attachView(this);
+
         return inflater.inflate(R.layout.fragment_data_entry, container, false);
     }
 

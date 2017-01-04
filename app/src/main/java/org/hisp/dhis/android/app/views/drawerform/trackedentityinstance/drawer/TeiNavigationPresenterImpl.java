@@ -1,7 +1,9 @@
 package org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer;
 
-import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.profile.TeiProfilePresenter;
-import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardPresenter;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.OnEventClickedEvent;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.UnlockNavigationEvent;
 import org.hisp.dhis.client.sdk.core.enrollment.EnrollmentInteractor;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
@@ -17,7 +19,6 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityAttributeValue;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
-import org.hisp.dhis.client.sdk.ui.models.Form;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityText;
 import org.hisp.dhis.client.sdk.utils.CodeGenerator;
 import org.hisp.dhis.client.sdk.utils.Logger;
@@ -47,40 +48,49 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
     private TeiNavigationView teiNavigationView;
     private CompositeSubscription subscription;
 
-    private final TeiDashboardPresenter teiDashboardPresenter;
-    private final TeiProfilePresenter teiProfilePresenter;
     private final EnrollmentInteractor enrollmentInteractor;
     private final EventInteractor eventInteractor;
     private final TrackedEntityInstanceInteractor trackedEntityInstanceInteractor;
     private final TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor;
     private final ProgramInteractor programInteractor;
     private final Logger logger;
+    private final DrawerFormBus eventBus;
 
-    public TeiNavigationPresenterImpl(TeiDashboardPresenter teiDashboardPresenter,
-                                      TeiProfilePresenter teiProfilePresenter,
-                                      EnrollmentInteractor enrollmentInteractor,
+    public TeiNavigationPresenterImpl(EnrollmentInteractor enrollmentInteractor,
                                       EventInteractor eventInteractor,
                                       TrackedEntityInstanceInteractor trackedEntityInstanceInteractor,
                                       TrackedEntityAttributeValueInteractor trackedEntityAttributeValueInteractor,
-                                      ProgramInteractor programInteractor, Logger logger) {
-        this.teiDashboardPresenter = teiDashboardPresenter;
-        this.teiProfilePresenter = teiProfilePresenter;
+                                      ProgramInteractor programInteractor,
+                                      Logger logger,
+                                      DrawerFormBus eventBus) {
         this.enrollmentInteractor = enrollmentInteractor;
         this.eventInteractor = eventInteractor;
         this.trackedEntityInstanceInteractor = trackedEntityInstanceInteractor;
         this.trackedEntityAttributeValueInteractor = trackedEntityAttributeValueInteractor;
         this.programInteractor = programInteractor;
         this.logger = logger;
+        this.eventBus = eventBus;
     }
 
     @Override
     public void attachView(View view) {
         teiNavigationView = (TeiNavigationView) view;
+        eventBus
+                .observable(UnlockNavigationEvent.class)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<UnlockNavigationEvent>() {
+                    @Override
+                    public void call(UnlockNavigationEvent unlockNavigationEvent) {
+                        teiNavigationView.setRegistrationComplete(true);
+                        teiNavigationView.selectTab(TeiNavigationView.TAB_PROGRAM_STAGES);
+                    }
+                });
     }
 
     @Override
     public void detachView() {
         teiNavigationView = null;
+        eventBus.observable(UnlockNavigationEvent.class).unsubscribeOn(AndroidSchedulers.mainThread());
     }
 
     @Override
@@ -144,7 +154,7 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
 
     @Override
     public void onProfileClick() {
-        teiProfilePresenter.toggleLockStatus();
+        //teiProfilePresenter.toggleLockStatus();
     }
 
     @Override
@@ -167,17 +177,20 @@ public class TeiNavigationPresenterImpl implements TeiNavigationPresenter {
 
         final Event event = builder.build();
 
-        Observable.just(eventInteractor.store().save(event)).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean aBoolean) {
-                Form.Builder formBuilder = new Form.Builder()
-                        .setDataModelUid(event.uid())
-                        .setProgramUid(programUid)
-                        .setProgramStageUid(programStageUid);
-
-                teiDashboardPresenter.showForm(formBuilder.build());
-            }
-        });
+        Observable.just(
+                eventInteractor.store().save(event)).
+                subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()).
+                subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean eventStoredSuccessfully) {
+                        if (eventStoredSuccessfully) {
+                            eventBus.post(new ToggleDrawerEvent());
+                            eventBus.post(new OnEventClickedEvent(event.uid()));
+                            // TODO: send more information than just event uid?
+                        }
+                    }
+                });
 
 
     }

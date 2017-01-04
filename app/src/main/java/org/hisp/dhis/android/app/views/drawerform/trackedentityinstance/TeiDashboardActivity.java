@@ -113,11 +113,13 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
             if (teiDashboardComponent != null) {
                 ((SkeletonApp) getApplication()).releaseTeiDashboardComponent();
             }
+        }
 
+        if (teiDashboardComponent == null) {
             // create new instance of component
             teiDashboardComponent = ((SkeletonApp) getApplication()).createTeiDashboardComponent();
         }
-
+        
         teiDashboardComponent.inject(this);
     }
 
@@ -156,6 +158,7 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
     protected void onDestroy() {
         super.onDestroy();
         teiDashboardPresenter.detachView();
+        ((SkeletonApp) getApplication()).releaseTeiDashboardComponent();
     }
 
     @Override
@@ -184,15 +187,13 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         return drawerLayout == null;
     }
 
-    @Override
-    public void closeDrawer() {
+    private void closeDrawer() {
         if (drawerLayout != null) {
             drawerLayout.closeDrawers();
         }
     }
 
-    @Override
-    public void openDrawer() {
+    private void openDrawer() {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.END);
         }
@@ -212,6 +213,19 @@ public class TeiDashboardActivity extends FragmentActivity implements TeiDashboa
         return getIntent() == null || getIntent().getSerializableExtra(ARG_CONTEXT_TYPE) == null ||
                 getIntent().getSerializableExtra(ARG_CONTEXT_TYPE) != DashboardContextType.REGISTRATION;
 
+    }
+
+    @Override
+    public void toggleDrawerState() {
+        if (drawerLayout == null) {
+            return;
+        }
+
+        if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
+            drawerLayout.closeDrawers();
+        } else {
+            drawerLayout.openDrawer(GravityCompat.END);
+        }
     }
 
     @Override

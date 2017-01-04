@@ -4,7 +4,5 @@ import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 
 public interface SingleEventDashboardView extends View {
 
-    void closeDrawer();
-
-    void openDrawer();
+    void toggleDrawerState();
 }

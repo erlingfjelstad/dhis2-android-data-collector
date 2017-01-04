@@ -21,7 +21,8 @@ import android.widget.Toast;
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
 import org.hisp.dhis.android.app.views.create.event.CreateEventActivity;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerController;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.event.TeiProgramStageFragment;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.profile.TeiProfileFragment;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.widget.TeiWidgetFragment;
@@ -50,7 +51,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     TeiNavigationPresenter teiNavigationPresenter;
 
     @Inject
-    RightDrawerController rightNavDrawerController;
+    DrawerFormBus eventBus;
 
     private FontTextView firstAttribute, secondAttribute;
     private FloatingActionButton floatingActionButton;
@@ -76,19 +77,11 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_dashboard_overview, container, false);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         try {
             ((SkeletonApp) getActivity().getApplication())
                     .getTeiDashboardComponent().inject(this);
 
-            // attach view is called in this case from onCreate(),
+            // attach view is called in this case from onCreateView(),
             // in order to prevent unnecessary work which should be done
             // if case it will be i onResume()
             teiNavigationPresenter.attachView(this);
@@ -96,6 +89,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
             Log.e(TAG, "Activity or Application is null. Vital resources have been killed.", e);
         }
 
+        return inflater.inflate(R.layout.fragment_dashboard_overview, container, false);
     }
 
     @Override
@@ -136,7 +130,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                     setNavigationOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            rightNavDrawerController.hideMenu();
+                            eventBus.post(new ToggleDrawerEvent());
                         }
                     });
 
@@ -285,7 +279,7 @@ public class TeiNavigationFragment extends Fragment implements TeiNavigationView
                 ((Toolbar) getView().findViewById(R.id.toolbar)).setNavigationOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        rightNavDrawerController.hideMenu();
+                        eventBus.post(new ToggleDrawerEvent());
                     }
                 });
             } else {

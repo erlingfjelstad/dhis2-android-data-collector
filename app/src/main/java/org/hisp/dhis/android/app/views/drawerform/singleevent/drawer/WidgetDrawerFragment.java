@@ -12,7 +12,8 @@ import android.view.ViewGroup;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerController;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
 
 import javax.inject.Inject;
 
@@ -27,9 +28,8 @@ public class WidgetDrawerFragment extends Fragment implements WidgetDrawerView {
 
     @Inject
     WidgetDrawerPresenter widgetDrawerPresenter;
-
     @Inject
-    RightDrawerController rightDrawerController;
+    DrawerFormBus eventBus;
 
     public WidgetDrawerFragment() {
         // Required empty public constructor
@@ -49,6 +49,15 @@ public class WidgetDrawerFragment extends Fragment implements WidgetDrawerView {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getArguments() != null) {
+            eventUid = getArguments().getString(ARG_EVENT_UID);
+            programUid = getArguments().getString(ARG_PROGRAM_UID);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         try {
             ((SkeletonApp) getActivity().getApplication())
                     .getSingleEventDashboardComponent().inject(this);
@@ -60,16 +69,6 @@ public class WidgetDrawerFragment extends Fragment implements WidgetDrawerView {
         } catch (Exception e) {
             Log.e("WidgetDrawerFragment", "Activity or Application is null. Vital resources have been killed.", e);
         }
-
-        if (getArguments() != null) {
-            eventUid = getArguments().getString(ARG_EVENT_UID);
-            programUid = getArguments().getString(ARG_PROGRAM_UID);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_widget_drawer, container, false);
     }
 
@@ -82,7 +81,7 @@ public class WidgetDrawerFragment extends Fragment implements WidgetDrawerView {
                     setNavigationOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            rightDrawerController.hideMenu();
+                            eventBus.post(new ToggleDrawerEvent());
                         }
                     });
 
@@ -91,6 +90,5 @@ public class WidgetDrawerFragment extends Fragment implements WidgetDrawerView {
 
     private boolean useTwoPaneLayout() {
         return getArguments() != null && getArguments().getBoolean(ARG_TWO_PANE_LAYOUT);
-
     }
 }

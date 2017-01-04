@@ -14,6 +14,9 @@ import com.bignerdranch.expandablerecyclerview.ExpandableRecyclerAdapter;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.OnEventClickedEvent;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.drawer.AbsTeiNavigationSectionFragment;
 import org.hisp.dhis.client.sdk.ui.activities.ReportEntitySelection;
 import org.hisp.dhis.client.sdk.ui.adapters.expandable.ExpandableAdapter;
@@ -30,6 +33,9 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
     private static final String ARG_SELECTED_REPORT_ENTITY = "arg:selectedReportEntityUid";
     @Inject
     TeiProgramStagePresenter teiProgramStagePresenter;
+
+    @Inject
+    DrawerFormBus eventBus;
 
     private ExpandableAdapter adapter;
     private ArrayList<ExpansionPanel> programStages;
@@ -113,8 +119,9 @@ public class TeiProgramStageFragment extends AbsTeiNavigationSectionFragment imp
         selectedReportEntityUid = uid;
         adapter.notifyDataSetChanged();
         reportEntitySelection.setSelectedUid(uid);
-
-        teiProgramStagePresenter.showEventForm(uid);
+        eventBus.post(new ToggleDrawerEvent());
+        eventBus.post(new OnEventClickedEvent(uid));
+        //teiProgramStagePresenter.showEventForm(uid);
     }
 
     @Override

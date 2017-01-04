@@ -39,11 +39,10 @@ import android.widget.TextView;
 
 import org.hisp.dhis.android.app.R;
 import org.hisp.dhis.android.app.SkeletonApp;
-import org.hisp.dhis.android.app.views.drawerform.NavigationLockController;
-import org.hisp.dhis.android.app.views.drawerform.RightDrawerController;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.DrawerFormBus;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.ToggleDrawerEvent;
+import org.hisp.dhis.android.app.views.drawerform.eventbus.UnlockNavigationEvent;
 import org.hisp.dhis.android.app.views.drawerform.form.dataentry.DataEntryFragment;
-import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardComponent;
-import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardComponent;
 import org.hisp.dhis.client.sdk.models.enrollment.EnrollmentStatus;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
@@ -85,10 +84,9 @@ public class FormFragment extends Fragment implements FormView, Toolbar.OnMenuIt
     // Injected dependencies
     @Inject
     FormPresenter formPresenter;
+
     @Inject
-    RightDrawerController rightNavDrawerController;
-    @Inject
-    NavigationLockController navigationLockController;
+    DrawerFormBus eventBus;
 
     private CoordinatorLayout coordinatorLayout;
     private TextView textViewReportDate;
@@ -152,21 +150,8 @@ public class FormFragment extends Fragment implements FormView, Toolbar.OnMenuIt
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_form, container, false);
 
-        /*try {
-            ((SkeletonApp) getActivity().getApplication()).getTeiDashboardComponent().inject(this);
-        } catch (Exception e) {
-            Log.e("FormFragment", "Activity or Application is null. Vital resources have been killed.", e);
-            ((SkeletonApp) getActivity().getApplication()).getSingleEventDashboardComponent().inject(this);
-        }*/
-
-
-        try {
-            TeiDashboardComponent component = ((SkeletonApp) getActivity().getApplication()).getTeiDashboardComponent();
-            component.inject(this);
-        } catch (Exception e) {
-            SingleEventDashboardComponent component = ((SkeletonApp) getActivity().getApplication()).getSingleEventDashboardComponent();
-            component.inject(this);
-        }
+        FormComponent formComponent = ((SkeletonApp) getActivity().getApplication()).getFormComponent();
+        formComponent.inject(this);
 
         formPresenter.attachView(this);
         setupCoordinatorLayout(rootView);
@@ -237,7 +222,7 @@ public class FormFragment extends Fragment implements FormView, Toolbar.OnMenuIt
     @Override
     public boolean onMenuItemClick(MenuItem item) {
         if (item.getItemId() == R.id.action_show_menu) {
-            rightNavDrawerController.showMenu();
+            eventBus.post(new ToggleDrawerEvent());
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -370,9 +355,8 @@ public class FormFragment extends Fragment implements FormView, Toolbar.OnMenuIt
 
                 if (!registrationIsComplete()) {
                     getArguments().putBoolean(ARG_REGISTRATION_COMPLETE, true);
-                    if (navigationLockController != null) {
-                        navigationLockController.unlockNavigation();
-                    }
+                    eventBus.post(new UnlockNavigationEvent());
+                    eventBus.post(new ToggleDrawerEvent());
                     fabComplete.setVisibility(GONE);
                     clearForm();
                     ((TextView) emptyPlaceholderView.findViewById(R.id.empty_state_placeholder_text)).setText(R.string.enrollment_complete_empty_form);

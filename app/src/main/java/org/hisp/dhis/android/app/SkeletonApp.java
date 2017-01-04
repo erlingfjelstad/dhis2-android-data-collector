@@ -8,6 +8,7 @@ import com.crashlytics.android.core.CrashlyticsCore;
 
 import org.hisp.dhis.android.app.views.HomeActivity;
 import org.hisp.dhis.android.app.views.LoginActivity;
+import org.hisp.dhis.android.app.views.drawerform.form.FormComponent;
 import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardComponent;
 import org.hisp.dhis.android.app.views.drawerform.singleevent.SingleEventDashboardModule;
 import org.hisp.dhis.android.app.views.drawerform.trackedentityinstance.TeiDashboardComponent;
@@ -113,5 +114,13 @@ public class SkeletonApp extends App {
 
     public void releaseSingleEventDashboardComponent() {
         singleEventDashboardComponent = null;
+    }
+
+    public FormComponent getFormComponent() {
+        if (teiDashboardComponent != null) {
+            return teiDashboardComponent;
+        } else {
+            return singleEventDashboardComponent;
+        }
     }
 }
